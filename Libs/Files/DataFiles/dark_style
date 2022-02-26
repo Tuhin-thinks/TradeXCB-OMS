@@ -1,0 +1,250 @@
+#frame_api_details_inp{
+border:2px outset transparent;
+    border-radius: 15px 15px 15px 5px;
+}
+#frame_api_details_inp QLabel{
+    color: white;;
+    font: 10pt "Serif";
+}
+#frame_api_details_inp::hover{
+    background-color: rgba(254, 254, 254, 30);
+    border:2px outset transparent;
+    border-radius: 15px 15px 15px 5px;
+}
+QLineEdit{
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 0.6ex;
+    font-weight: bold;
+    font: 10pt "Serif";
+}
+#frame_bg_gradient_frame{
+    background-color: qlineargradient(spread:reflect, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(64, 64, 64, 255), stop:1 rgba(44, 44, 44, 107));
+    border:2px outset transparent;
+    border-radius: 15px 15px 15px 5px;
+    background-repeat: 0;
+    background-position: center;
+}
+
+QPushButton, QLabel, QLineEdit, QComboBox, QCheckbox{
+    font: 9pt "Serif";
+}
+/*----------- combobox section -----------------*/
+QComboBox{
+    color: white;
+    background-color: #1a1a1a;  /*grayish black*/
+    border: 1px solid white;
+	border-radius: 5px;
+	padding: 5px;
+	combobox-popup: 0;
+}
+QComboBox:on{
+	border: 1px solid white;
+	border-radius: 5px;
+	background-color: #00334d;
+    padding-left: 4px;
+}
+QComboBox QAbstractItemView
+{
+    border: 2px solid rgb(0,0,255);
+    color: black;
+    background-color: rgb(0,0,255);
+    selection-background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #111, stop: 1 #333);
+}
+
+QComboBox::drop-down
+{
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 15px;
+     color: white;
+     border-left-width: 0px;
+     border-left-color: darkgray;
+     border-left-style: solid; /* just a single line */
+     border-top-right-radius: 3px; /* same radius as the QComboBox */
+     border-bottom-right-radius: 3px;
+     padding-left: 10px;
+ }
+QComboBox::down-arrow{
+    image: url(:/icons/down-arrow-white.png);
+    width: 10px;
+    height: 10px;
+}
+
+/*----------- combobox section end -----------------*/
+
+QMenuBar{
+    font: 10pt "Serif";
+    color: rgb(255, 255, 255);
+    background-color:black;
+}
+QStatusBar{
+    font: 10pt "Serif";
+    color: rgb(255, 255, 255);
+    background-color: rgb(0, 0, 0);
+}
+
+QHeaderView{
+    color: white;
+    background-color: transparent; /* header background*/
+}
+QTableView{
+    gridline-color: rgba(255, 255, 255, 80);
+    background-color: #002233;  /*dark bluish shade*/
+    color: #cceeff;  /*lighter blue*/
+}
+QTableView::item{
+    color: palette(WindowText);
+}
+QTableView QTableCornerButton::section{
+    border: 1px solid black;
+    background-color: transparent;
+}
+QHeaderView::section {
+    color: white;
+    background-color: #343434;
+    font-size: 9pt;
+    padding: 2px;
+    border: 1px solid #4a4a4a;
+    margin: 2px;
+}
+QTabWidget{
+            color: rgba(255, 255, 255, 255);
+        }
+QTabWidget::pane {
+    /*border: 1px solid black;*/
+    background: rgba(0, 0, 0, 100);
+    color: rgba(255, 255, 255, 255);
+}
+QTabWidget::tab-bar {
+    alignment: center;
+}
+QTabBar::tab {
+    /*border: 1px solid rgba(255, 255, 255, 255);*/
+    color: rgba(255, 255, 255, 255);
+    font: 9pt "Serif";
+    margin-left: 5px;
+}
+QTabBar::tab:selected {
+    background:qlineargradient(spread:reflect, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(0, 90, 255, 255), stop:0.231579 rgba(0, 63, 178, 255), stop:0.542105 rgba(5, 5, 5, 255), stop:0.8 rgba(0, 63, 178, 255), stop:1 rgba(0, 90, 255, 255));
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+QTabBar::tab:!selected {
+    background: qlineargradient(spread:reflect, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(0, 90, 255, 255), stop:0.231579 rgba(0, 63, 178, 255), stop:0.542105 rgba(5, 5, 5, 255), stop:0.8 rgba(0, 63, 178, 255), stop:1 rgba(0, 90, 255, 255));
+	border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+QTabBar::tab:!selected:hover {
+    background: rgba(0, 0, 0, 255);
+    color: rgba(255, 255, 255, 255);
+}
+QTabBar::tab:top:!selected {
+    margin-top: 2ex;
+}
+QTabBar::tab:bottom:!selected {
+    margin-bottom: 0px;
+}
+QTabBar::tab:top, QTabBar::tab:bottom {
+    min-width: 25ex;  /* for main tab type */
+    min-height: 2.5ex;
+    margin-right: -1px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+QTabBar::tab:top:selected {
+    border-bottom-color: none;
+}
+QTabBar::tab:bottom:selected {
+    border-top-color: none;
+}
+QTabBar::tab:top:last, QTabBar::tab:bottom:last,
+QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
+    margin-right: 0;
+}
+QTabBar::tab:left:!selected {
+    margin-right: 3px;
+}
+QTabBar::tab:right:!selected {
+    margin-left: 3px;
+}
+QTabBar::tab:left, QTabBar::tab:right {
+    min-height: 5ex;
+    margin-bottom: -1px;
+    padding: 10px 5px 10px 5px;
+}
+QTabBar::tab:left:selected {
+    border-left-color: none;
+    border-right: none;
+}
+QTabBar::tab:right:selected {
+    border-right-color: none;
+    border-left: none;
+}
+QTabBar::tab:left:last, QTabBar::tab:right:last,
+QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
+    margin-bottom: 0;
+}
+
+QTabBar::tab:first:selected {
+margin-left: 0; /* the first selected tab has nothing to overlap with on the left */
+}
+QTabBar::tab:last:selected {
+    margin-right: 0; /* the last selected tab has nothing to overlap with on the right */
+}
+QTabBar::tab:only-one {
+    margin: 0; /* if there is only one tab, we don't want overlapping margins */
+}
+QTabBar::tab:first:!selected {
+    border-top-left-radius: 5px;
+}
+QTabBar::tab:last:!selected {
+    border-top-right-radius: 5px;
+}
+/* ----------------- scrollbar stylesheet ---------------- */
+QScrollBar:vertical {
+    border: 1px solid transparent;
+    background: transparent;
+    width:15px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+    background: #7676F8;
+    min-height: 0px;
+}
+QScrollBar::add-line:vertical {
+    background: #7676F8;
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+QScrollBar::sub-line:vertical {
+    background: #7676F8;
+    height: 0 px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+QScrollBar:horizontal {
+    border: 1px solid transparent;
+    background: transparent;
+    height: 15px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:horizontal {
+    background: #7676F8;
+    min-width: 5px;
+}
+QScrollBar::add-line:horizontal {
+    /*border: 2px solid grey;*/
+    background: #7676F8;
+    width: 0px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    background: #7676F8;
+    width: 0px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}

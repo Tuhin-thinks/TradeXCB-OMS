@@ -1,0 +1,107 @@
+{
+  "Transaction_Type": {
+    "default_value": "Sell",
+    "dropdown": true,
+    "dropdown_values": [
+      "Sell",
+      "Buy"
+    ]
+  },
+  "Entry_Time": {
+    "default_value": "",
+    "dropdown": false
+  },
+  "Exit_Time": {
+    "default_value": "15.30.00",
+    "dropdown": false
+  },
+  "Buy_Ltp_Percent": {
+    "default_value": 0.0,
+    "dropdown": false
+  },
+  "Sell_Ltp_Percent": {
+    "default_value": 0.0,
+    "dropdown": false
+  },
+  "Wait_Time": {
+    "default_value": 5.0,
+    "dropdown": false
+  },
+  "Symbol Name": {
+    "default_value": "NIFTY",
+    "dropdown": false
+  },
+  "Expiry Date": {
+    "default_value": "",
+    "dropdown": false
+  },
+  "CE_Instrument": {
+    "default_value": "ATM",
+    "dropdown": false
+  },
+  "PE_Instrument": {
+    "default_value": "ATM",
+    "dropdown": false
+  },
+  "Exchange": {
+    "default_value": "NFO",
+    "dropdown": true,
+    "dropdown_values": [
+      "NFO",
+      "CDS",
+      "MCX"
+    ]
+  },
+  "No. of lots": {
+    "default_value": 1,
+    "dropdown": false
+  },
+  "stoploss_type": {
+    "default_value": "Percentage",
+    "dropdown": true,
+    "dropdown_values": [
+      "Percentage",
+      "VALUE"
+    ]
+  },
+  "CE_Stoploss": {
+    "default_value": 40.0,
+    "dropdown": false
+  },
+  "tsl_type": {
+    "default_value": "Percentage",
+    "dropdown": true,
+    "dropdown_values": [
+      "Percentage",
+      "value"
+    ]
+  },
+  "CE_TSL": {
+    "default_value": 5,
+    "dropdown": false
+  },
+  "target_type": {
+    "default_value": "Percentage",
+    "dropdown": true,
+    "dropdown_values": [
+      "Percentage",
+      "value"
+    ]
+  },
+  "CE_target": {
+    "default_value": 20.0,
+    "dropdown": false
+  },
+  "PE_Stoploss": {
+    "default_value": 40.0,
+    "dropdown": false
+  },
+  "PE_TSL": {
+    "default_value": 5,
+    "dropdown": false
+  },
+  "PE_target": {
+    "default_value": 20,
+    "dropdown": false
+  }
+}
