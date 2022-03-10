@@ -2,13 +2,9 @@ import json
 import pandas as pd
 from Libs.globals import *
 
-BROKER_NAMES = ["Zerodha", "Angel", "IIFL"]
-# STRATEGIES = ["Long IronFly", "Short IronFly", "Long Strangle", "Short Strangle", "Short Straddle", "Long Straddle",
-#               "Delta Based Strategy", "Premium Based Strategy", "Short Far OTM", "NF 1 min Pymid 50 Lacs-SStraddl",
-#               "BNF 1 min Pymid 50 Lacs-SStradl", "NF 5 min Pymid 50 Lacs-SStraddl", "BNF 5 min Pymid 50 Lacs-SStradl"]
+BROKER_NAMES = ["Zerodha", "Angel", "IIFL", "AliceBlue"]
 
-STRATEGIES = ["Long IronFly", "Short IronFly", "Long Strangle", "Short Strangle", "Short Straddle", "Long Straddle",
-              "Delta Based Strategy", "Premium Based Strategy", "Short Far OTM", "Pyramiding Strategy"]
+STRATEGIES = ["Default"]
 
 strategies_name_to_img_mapper = {
     "Long IronFly": "LONG IRON BUTTERFLY",
@@ -69,9 +65,13 @@ numerical_columns = ['price_ce', 'vwap_ce', 'price_pe', 'vwap_pe', 'future_vwap'
                      'change in iv_ce', 'change in iv_pe', 'change in price_ce', 'change in price_pe',
                      'change in theta_ce', 'change in theta_pe']
 
-POSITIONS_COLUMNS = ['Order_Entry_Time', 'Exit_Time', 'CE_Instrument', 'PE_Instrument', 'CE_TSL', 'PE_TSL',
-                     'CE_Instrument_Entry_Price', 'PE_Instrument_Entry_Price', 'CE_Instrument_Exit_Price',
-                     'PE_Instrument_Exit_Price', 'SL_CE', 'SL_PE', 'CE_Target', 'PE_Target', 'quantity',
-                     'Transaction_Type', 'CE_Profit', 'PE_Profit', "VWAP_CE", "VWAP_PE"]
+POSITIONS_COLUMNS = ['user_id', 'tradingsymbol', 'exchange', 'quantity', 'timeframe', 'multiplier', 'entry_price',
+                     'entry_time', 'exit_price', 'exit_time', 'target_price', 'sl_price', 'Row_Type', 'profit', 'ltp',
+                     'Trend']
 
-SYMBOL_LIST = pd.read_csv(settings.DATA_FILES.get('symbols_mapping_csv')).name.tolist()
+API_DETAILS_COLUMNS = ['Name', 'Stock Broker Name', 'apiKey', 'apiSecret', 'accountUserName', 'accountPassword',
+                       'securityPin', 'totp_secret', 'No of Lots', 'consumerKey', 'accessToken', 'host', 'source',
+                       'market_appkey', 'market_secretkey']
+
+OMS_TABLE_COLUMNS = ["Instrument", "Entry_Time", "Transaction_Type", "Order_Type", "Product_Type", "Entry_Price",
+                     "Status", "Stoploss", "Target", "MODIFY", "CLOSE_Position"]

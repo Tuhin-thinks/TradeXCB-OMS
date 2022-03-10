@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+import pandas as pd
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import Qt
 
@@ -11,7 +12,7 @@ class PositionsModel(QtCore.QAbstractTableModel):
     def __init__(self, header_labels: typing.List, data=None):
         super(PositionsModel, self).__init__()
         self._data = None
-        data = [] if data is None else data
+        data = pd.DataFrame(columns=app_data.POSITIONS_COLUMNS) if data is None else data
         self.populate(data)
         self.header_labels = header_labels
 

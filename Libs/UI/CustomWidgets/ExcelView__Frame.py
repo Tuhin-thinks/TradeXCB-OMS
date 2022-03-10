@@ -1,11 +1,11 @@
-from Libs.icons_lib import Icons as icons
-from Libs.UI.CustomWidgets import Common_opt_chain_Table
-import Libs.UI.home
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+import Libs.UI.home
+from Libs.UI.CustomWidgets import Common_opt_chain_Table
+from Libs.icons_lib import Icons as icons
 
 
 class DisplayFrame(QtWidgets.QWidget):
-    export_instruments_data = QtCore.pyqtSignal(tuple)
 
     def __init__(self, table_name, header_labels, parent, global_parent):
         super(DisplayFrame, self).__init__(parent=parent)
@@ -18,7 +18,6 @@ class DisplayFrame(QtWidgets.QWidget):
 
         self.table_view = Common_opt_chain_Table.OptChainAnalysis_TableView(self.table_name, header_labels, self,
                                                                             self.global_parent)
-        self.table_view.export_instruments_data.connect(global_parent.accept_export_instruments_data)
         temp_ = self.global_parent.custom_style_sheet.tableview("dark")
         self.table_view.setStyleSheet(temp_)
         self.table_view.update()

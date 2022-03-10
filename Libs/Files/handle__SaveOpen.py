@@ -40,7 +40,7 @@ def delete_excel_sheet(sheet):
 
 
 def export_as_excel(parent: 'Libs.api_home.ApiHome'):
-    excel_path = settings.DATA_FILES["Delta_plus_Algo_File"]
+    excel_path = settings.DATA_FILES["tradexcb_excel_file"]
     complete_save_data = []
     strategy_name_index_mapping = {}
     strategies_to_save = set()
@@ -55,7 +55,7 @@ def export_as_excel(parent: 'Libs.api_home.ApiHome'):
                 for row_ in range(row_index, row_index + len(list_dict)):
                     strategy_name_index_mapping[row_] = strategy_name
                 row_index += len(list_dict)
-        field_names = StrategiesColumn.delta_plus_algo_columns + ['strategy_name']
+        field_names = StrategiesColumn.tradexcb_display_columns + ['strategy_name']
         try:
             workbook = openpyxl.load_workbook(excel_path)
 

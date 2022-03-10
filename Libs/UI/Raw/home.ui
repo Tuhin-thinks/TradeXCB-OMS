@@ -465,7 +465,29 @@ QStatusBar{
 	font: 10pt &quot;Serif&quot;;
 	color: white;
 	background-color:black;
+}
+QTabWidget::pane {
+	border: 1px solid white;
+	top:-2px;
+	background: rgb(245, 245, 245);
+}
+QTabBar::tab {
+	background: rgb(230, 230, 230);
+	padding: 15px;
+} 
+QTabBar::tab:selected {
+	background: rgb(245, 245, 245);
+	border: 2px solid lightgrey;
+	border-bottom: none;
+	margin-bottom: -1px;
+}
+QTabBar::tab:!selected{
+	margin-top: 5px;
+	border-bottom: 2px solid lightgrey;
 }</string>
+  </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -951,7 +973,7 @@ QStatusBar{
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="../icons/icons.qrc">:/icons/app_logo_yellow.png</pixmap>
+             <pixmap>:/icons/app_logo_yellow.png</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>
@@ -982,9 +1004,32 @@ QStatusBar{
          <property name="styleSheet">
           <string notr="true"/>
          </property>
-         <property name="currentIndex">
-          <number>4</number>
+         <property name="tabPosition">
+          <enum>QTabWidget::North</enum>
          </property>
+         <property name="tabShape">
+          <enum>QTabWidget::Rounded</enum>
+         </property>
+         <property name="currentIndex">
+          <number>5</number>
+         </property>
+         <widget class="QWidget" name="tab_2">
+          <attribute name="title">
+           <string>Multi Client Account Details</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="QFrame" name="frame_client_acc_body">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="tab">
           <attribute name="title">
            <string>Option Chain Analysis</string>
@@ -1125,124 +1170,6 @@ QStatusBar{
                <string>Premium Report</string>
               </attribute>
              </widget>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="tab_2">
-          <attribute name="title">
-           <string>Strategies</string>
-          </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QFrame" name="frame_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>40</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">#frame_2{
-	background-color: rgb(0, 0, 0);
-}</string>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QComboBox" name="comboBox_strategy_select">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>35</height>
-                 </size>
-                </property>
-                <property name="currentText">
-                 <string/>
-                </property>
-                <property name="currentIndex">
-                 <number>-1</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_7">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item alignment="Qt::AlignTop">
-            <widget class="QFrame" name="frame_strategy_picture">
-             <property name="styleSheet">
-              <string notr="true">QFrame{
-	background-color: black;
-}</string>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_strategies_image">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <property name="spacing">
-               <number>0</number>
-              </property>
-             </layout>
             </widget>
            </item>
           </layout>
@@ -1415,6 +1342,9 @@ QStatusBar{
                  </property>
                  <item row="0" column="0">
                   <widget class="QScrollArea" name="scrollArea_trading_symb">
+                   <property name="frameShape">
+                    <enum>QFrame::NoFrame</enum>
+                   </property>
                    <property name="widgetResizable">
                     <bool>true</bool>
                    </property>
@@ -1423,8 +1353,8 @@ QStatusBar{
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>1187</width>
-                      <height>513</height>
+                      <width>1191</width>
+                      <height>492</height>
                      </rect>
                     </property>
                    </widget>
@@ -1480,6 +1410,23 @@ QStatusBar{
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="tab_oms">
+          <attribute name="title">
+           <string>Order Management</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_12">
+           <item row="0" column="0">
+            <widget class="QFrame" name="frame_oms_outer">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="tab_6">
           <attribute name="title">
            <string>Positions</string>
@@ -1494,37 +1441,104 @@ QStatusBar{
               </size>
              </property>
              <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
+              <enum>QFrame::NoFrame</enum>
              </property>
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
               <item row="0" column="0">
-               <widget class="QLabel" name="label_optionscalc_l">
-                <property name="text">
-                 <string>N/A</string>
+               <widget class="QFrame" name="frame">
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
                 </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_optionscalc_l">
+                   <property name="text">
+                    <string>N/A</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_options_cal_c">
+                   <property name="text">
+                    <string>N/A</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_options_calc_r">
+                   <property name="text">
+                    <string>N/A</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLabel" name="label_options_cal_c">
-                <property name="text">
-                 <string>N/A</string>
+               <widget class="QFrame" name="frame_2">
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
                 </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
                 </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_options_calc_r">
-                <property name="text">
-                 <string>N/A</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_positions_more">
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>More</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
              </layout>
@@ -1669,21 +1683,9 @@ QStatusBar{
     </widget>
     <addaction name="menuChoose_Theme"/>
    </widget>
-   <widget class="QMenu" name="menuUser_API_Details">
-    <property name="title">
-     <string>User API Details</string>
-    </property>
-    <addaction name="actionEdit_api_details"/>
-   </widget>
    <addaction name="menuSettings"/>
-   <addaction name="menuUser_API_Details"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionEdit_api_details">
-   <property name="text">
-    <string>Show/Edit</string>
-   </property>
-  </action>
  </widget>
  <resources>
   <include location="../icons/icons.qrc"/>

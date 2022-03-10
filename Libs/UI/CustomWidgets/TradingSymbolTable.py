@@ -1,4 +1,3 @@
-import typing
 from copy import deepcopy
 
 import pandas as pd
@@ -7,7 +6,6 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from Libs.Concurrency import CSV_Loader as Loader
 from Libs.Files.TradingSymbolMapping import StrategiesColumn
 from Libs.UI.Models_n_Delegates import Model__StrategyTable
-from Libs.Utils import calculations
 from Libs.globals import *
 
 logger = exception_handler.getFutureLogger(__name__)
@@ -23,6 +21,8 @@ class StrategyView(QtWidgets.QTableView):
         self.strategy = strategy
         self.setMinimumHeight(250)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.setCornerButtonEnabled(False)
 
         self.header_labels = StrategiesColumn.strategy_dict[strategy]
@@ -44,12 +44,10 @@ class StrategyView(QtWidgets.QTableView):
     def increase_col_space(self) -> None:
         extra_space_factor = 5
         for col in range(self._model.columnCount()):
-            if col == 6:
+            if col == self.header_labels.index("Symbol Name"):
                 self.setColumnWidth(col, 200)
-            elif col in (7, 8, 9):
+            elif col in (0, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 17, 19, 22, 23, 24, 27, 29, 30):
                 self.setColumnWidth(col, 150)
-            elif col in (12, 14, 16):
-                self.setColumnWidth(col, 120)
             else:
                 col_width = self.columnWidth(col)
                 if col_width < 100:
@@ -77,20 +75,22 @@ class StrategyView(QtWidgets.QTableView):
         """
         data = args[0]  # list of symbol names
         instruments_df = args[1]
-        self.name_expiry_df = instruments_df[['name', 'expiry']]
-        symbol_col = 6
-        self._symb_names_delegate = Model__StrategyTable.ChoiceBoxDelegate(self, data, self.header_labels, symbol_col)
-        self.setItemDelegateForColumn(symbol_col, self._symb_names_delegate)
-        self._delegate_1 = Model__StrategyTable.LineEditDelegate("Entry_Time")
-        self._delegate_2 = Model__StrategyTable.LineEditDelegate("Exit_Time")
-        self.setItemDelegateForColumn(1, self._delegate_1)
-        self.setItemDelegateForColumn(2, self._delegate_2)
 
-        exp_col = self.header_labels.index('Expiry Date')
+        # ----- create list of symbol names for nse stock options ----------
+        filters = (instruments_df['exchange'] == 'NSE') & (instruments_df['instrument_type'] == 'EQ') &\
+                  (instruments_df['name'] != '')
+        nse_options_df = instruments_df[filters]
+
+        self.name_expiry_df = instruments_df[['name', 'expiry', 'exchange']]
+        symbol_col = self.header_labels.index('Symbol Name')
+        self._symb_names_delegate = Model__StrategyTable.ChoiceBoxDelegate(self, self.name_expiry_df, self.header_labels, symbol_col,
+                                                                           data_dict={'nse_options_df': nse_options_df})
+        self.setItemDelegateForColumn(symbol_col, self._symb_names_delegate)
+
+        exp_col = self.header_labels.index('expiry')
         self._delegate_exp_date = Model__StrategyTable.ChoiceBoxDelegate(self,
                                                                          None, self.header_labels, exp_col,
-                                                                         extra_choices=instruments_df[['expiry',
-                                                                                                       'name']])
+                                                                         extra_choices=self.name_expiry_df)
         self.setItemDelegateForColumn(exp_col, self._delegate_exp_date)
         logger.debug("Delegates added")
 
@@ -126,21 +126,25 @@ class StrategyView(QtWidgets.QTableView):
                 if column_name == "Symbol Name":
                     self.default_data.append("NIFTY")  # default symbol name
                     continue
-                elif column_name in ('CE_Instrument', 'PE_Instrument'):
-                    self.default_data.append("ATM")
-                    choices = [f"ATM-{x}" for x in range(10, 0, -1)] + ['ATM'] + [f"ATM+{x}" for x in range(1, 11)]
+                elif column_name == "atm_strike":
+                    self.default_data.append("ATM CE")
+                    choices = []
+                    for i in range(-10, 11):
+                        if i == 0:
+                            choices.append("ATM CE")
+                            choices.append("ATM PE")
+                            continue
+                        operator = "" if i < 0 else "+"
+                        atm_ce = f"ATM{operator}{i} CE"
+                        atm_pe = f"ATM{operator}{i} PE"
+                        choices.append(atm_ce)
+                        choices.append(atm_pe)
+
                     self.setItemDelegateForColumn(col_index,
                                                   Model__StrategyTable.ChoiceBoxDelegate(self,
                                                                                          list(map(str, choices)),
                                                                                          self.header_labels,
                                                                                          col_index))
-                    continue
-                elif column_name in ('Entry_Time', 'Exit_Time'):
-
-                    if column_name == "Entry_Time":
-                        self.default_data.append(calculations.get_default_entry_time())
-                    else:
-                        self.default_data.append(calculations.get_default_exit_time())
                     continue
 
                 self.default_data.append(str(column_info_dict.get("default_value")))
@@ -152,7 +156,7 @@ class StrategyView(QtWidgets.QTableView):
             logger.info(f"New strategy added: {self.strategy}")
 
     def remove_row(self, row: int):
-        res = self.model().remove_row(row)
+        res = self._model.remove_row(row)
         return res
 
     def insert_row(self, customizations: typing.Union[typing.List[typing.List[typing.Tuple]], None] = None):
@@ -163,14 +167,27 @@ class StrategyView(QtWidgets.QTableView):
                     _copy_data[_to_chg_key] = _custom_value
                 _symbol_name = _copy_data.get("Symbol Name")
                 try:
-                    if "Expiry Date" not in _copy_data:
-                        _copy_data["Expiry Date"] = self.name_expiry_df[self.name_expiry_df.name ==
+                    if "expiry" not in _copy_data:
+                        _copy_data["expiry"] = self.name_expiry_df[self.name_expiry_df.name ==
                                                                         _symbol_name].iloc[0].expiry
                 except (KeyError, IndexError, NameError):
                     pass
                 self._model.append_row(list(_copy_data.values()))
         else:
-            self._model.append_row(self.default_data.copy())
+            data_dict = dict(zip(self.header_labels, self.default_data))
+            # sort by recent expiry date for the given symbol name and exchange
+            try:
+                expiry_date = pd.to_datetime(
+                    self.name_expiry_df[
+                        (self.name_expiry_df.name == data_dict['Symbol Name']) &
+                        (self.name_expiry_df.exchange == data_dict['exchange'])
+                    ].expiry).sort_values().unique()[0]
+                expiry_str = pd.to_datetime(expiry_date).strftime("%Y-%m-%d")
+                data_dict["expiry"] = expiry_str
+            except (IndexError, ValueError, TypeError):
+                logger.warning(f"Expiry date not found for symbol: {data_dict['Symbol Name']} and "
+                               f"exchange: {data_dict['exchange']}")
+            self._model.append_row(list(data_dict.values()))
 
     def append_row(self, data_row_list):
         """
@@ -192,13 +209,10 @@ class StrategyView(QtWidgets.QTableView):
         """
         return_data = self._model.get_data()
         complete_data = []
+        default_fields_data_all = deepcopy(app_data.DEFAULT_DATA_ALL_FIELDS)
         for row in return_data:
-            default_fields_data_all = deepcopy(app_data.DEFAULT_DATA_ALL_FIELDS)  # this has the fields of backtesting too
             to_save = dict()
-            for key, value in default_fields_data_all.items():
-                if key in ("start_date", "end_date"):
-                    continue
-                to_save[key] = value["default_value"]
+            # to_save[key] = value["default_value"]
             to_save.update(dict(zip(self.header_labels + ['strategy_name'], row + [self.strategy])))
             complete_data.append(to_save)
 

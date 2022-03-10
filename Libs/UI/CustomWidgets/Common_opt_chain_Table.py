@@ -1,13 +1,10 @@
-from functools import partial
-import typing
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from Libs.Files import handle__SaveOpen
-from Libs.UI.Models_n_Delegates import Model__ExcelView
-from Libs.UI.CustomWidgets import PopupList
-from Libs.UI.Proxies import TableProxies
-from Libs.UI.custom_style_sheet import CustomStyleSheet
 import Libs.globals
+from Libs.Files import handle__SaveOpen
+from Libs.UI.CustomWidgets import PopupList
+from Libs.UI.Models_n_Delegates import Model__ExcelView
+from Libs.UI.Proxies import TableProxies
 
 logger = Libs.globals.exception_handler.getFutureLogger(__name__)
 
@@ -34,10 +31,6 @@ class OptChainAnalysis_TableView(QtWidgets.QTableView):
         size_adjust_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
         size_adjust_shortcut.activated.connect(self.resizeColumnsToContents)
 
-        # show stylesheet shortcut
-        stylesheet_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
-        stylesheet_shortcut.activated.connect(self.show_stylesheet)
-
         self.setSelectionBehavior(self.SelectRows)
 
         self.verticalHeader().setVisible(False)
@@ -45,39 +38,6 @@ class OptChainAnalysis_TableView(QtWidgets.QTableView):
         self.horizontal_header.sectionClicked.connect(self.header_section_clicked)
         self.manage_col_space()
         self.setPalette(global_parent.palette())
-
-    def show_stylesheet(self):
-        inp, _ = QtWidgets.QInputDialog.getMultiLineText(self, "Stylesheet", "TableView table stylesheet", self.styleSheet())
-        if inp and _:
-            self.setStyleSheet(inp)
-        else:
-            self.setStyleSheet("")
-
-    def contextMenuEvent(self, event: QtGui.QContextMenuEvent) -> None:
-        if self.table_name in ("DELTA_REPORT", "PREMIUM_REPORT"):
-            selected_indices = self.selectionModel().selection().indexes()
-            if selected_indices:
-                menu = QtWidgets.QMenu("Export Symbols", self)
-                menu.addSeparator()
-                for index in selected_indices:
-                    row, col = index.row(), index.column()
-                    if col == 1:  # col 1, has instrument symbols
-                        ce_instrument = self._model.dataAt(row, col)
-                        pe_instrument = self._model.dataAt(row, col + 1)
-                        symbol_name = self._model.dataAt(row, 0)  # first column has symbol name
-                        export_menu = QtWidgets.QMenu(f"{self._model.dataAt(row, col)}, {self._model.dataAt(row, col+1)}", menu)
-                        export_menu.addAction("Export to Strategy").setEnabled(False)
-                        export_menu.addSeparator()
-                        export_actions = [QtWidgets.QAction(strategy, export_menu) for strategy in Libs.globals.app_data.STRATEGIES]
-                        for action in export_actions:
-                            action.triggered.connect(partial(self.export_instruments, ce_instrument, pe_instrument, action.text(), symbol_name))
-                        export_menu.addActions(export_actions)
-                        menu.addAction(export_menu.menuAction())
-                menu.setStyleSheet(CustomStyleSheet.menu_stylesheet())
-                menu.setMaximumHeight(350)
-                menu.setMaximumWidth(450)
-                menu.setPalette(self.palette())
-                menu.exec_(event.globalPos())
 
     def export_instruments(self, ce_instrument, pe_instrument, strategy, symbol_name, *_):
         self.export_instruments_data.emit((ce_instrument, pe_instrument, strategy, symbol_name))

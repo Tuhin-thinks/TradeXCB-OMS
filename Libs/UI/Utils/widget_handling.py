@@ -1,13 +1,13 @@
+from PyQt5 import QtWidgets
+
 import Libs.globals
 from Libs.UI import parse_palette, home
 from Libs.UI.CustomWidgets import ExcelView__Frame, SlidingStackedWidget
-from PyQt5 import QtWidgets
 
 
 def add_sensitive_widgets_to_palette(parent: 'QtWidgets.QMainWindow'):
     # create list of widgets, for which palette needs to be updated
-    for widget in [parent.ui.comboBox_strategy_select,
-                   parent.ui.scrollAreaWidgetContents_trading_symb, parent.positionView,
+    for widget in [parent.ui.scrollAreaWidgetContents_trading_symb, parent.positionView,
                    parent.tableView_logs]:
         if widget not in parent.palette_sensitive_widgets:
             parent.palette_sensitive_widgets.append(widget)
@@ -94,12 +94,10 @@ def add_option_analysis_views(parent):
 
     frame_deltaReport = ExcelView__Frame.DisplayFrame("DELTA_REPORT", Libs.globals.app_data.DELTA_REPORT,
                                                       parent.ui.tabWidget_opt_chain_analysis, parent)
-    frame_deltaReport.export_instruments_data.connect(parent.accept_export_instruments_data)
     parent.gridLayout_DeltaReport.addWidget(frame_deltaReport, 0, 0, 1, 1)
 
     frame_premiumReport = ExcelView__Frame.DisplayFrame("PREMIUM_REPORT", Libs.globals.app_data.PREMIUM_REPORT,
                                                         parent.ui.tabWidget_opt_chain_analysis, parent)
-    frame_deltaReport.export_instruments_data.connect(parent.accept_export_instruments_data)
     parent.gridLayout_premiumReport.addWidget(frame_premiumReport, 0, 0, 1, 1)
 
     frame_signals = ExcelView__Frame.DisplayFrame("SIGNALS", Libs.globals.app_data.SIGNALS,

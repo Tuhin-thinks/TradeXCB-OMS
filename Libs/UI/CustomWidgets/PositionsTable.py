@@ -1,3 +1,4 @@
+import pandas as pd
 from Libs.globals import *
 from Libs.UI.CustomWidgets import PopupList
 from Libs.UI.Models_n_Delegates import Model__PositionsTable
@@ -29,41 +30,26 @@ class PositionsView(QtWidgets.QTableView):
         size_adjust_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+R"), self)
         size_adjust_shortcut.activated.connect(self.resizeColumnsToContents)
 
-        # show stylesheet shortcut
-        stylesheet_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+S"), self)
-        stylesheet_shortcut.activated.connect(self.show_stylesheet)
-
         self.setSelectionBehavior(self.SelectRows)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.watch_loc = settings.DATA_FILES.get("POSITIONS_FILE_NAME")  # check for filenames positions log
-        flag = True
-        if not os.path.exists(self.watch_loc):
-            logger.critical(
-                f"Cannot monitor file: {settings.DATA_FILES.get('POSITIONS_FILE_NAME')}, may have been moved or deleted.")
-            flag = False
 
-        if flag:
-            self.handler = FS__EventHandLer.Position_CSVModifyHandler(self.watch_loc)
-            self.handler.file_changed.connect(self.reset_model_data)
-            self.header_labels = self.handler.get_headers()[1:]
-            self._model = Model__PositionsTable.PositionsModel(self.header_labels)
-            self.proxy_model = TableProxies.PositionsProxy(self)
-            self.proxy_model.setSourceModel(self._model)
-            self.setModel(self.proxy_model)
-            self.verticalHeader().setVisible(False)
-            self.start_check()  # start the check (Threaded)
+        self.watch_loc = settings.DATA_FILES.get("POSITIONS_FILE_PATH")  # check for filenames positions log
+        self.handler = FS__EventHandLer.Position_CSVModifyHandler(self.watch_loc)
+        self.handler.file_changed.connect(self.reset_model_data)
+        self.header_labels = app_data.POSITIONS_COLUMNS
+        self._model = Model__PositionsTable.PositionsModel(self.header_labels)
+        self.proxy_model = TableProxies.PositionsProxy(self)
+        self.proxy_model.setSourceModel(self._model)
+        self.setModel(self.proxy_model)
+        self.verticalHeader().setVisible(False)
 
-            self.horizontalHeader: 'QtWidgets.QHeaderView' = self.horizontalHeader()
-            self.horizontalHeader.sectionClicked.connect(self.header_section_clicked)
+        self.start_check()  # start the check (Threaded)
+
+        self.horizontalHeader: 'QtWidgets.QHeaderView' = self.horizontalHeader()
+        self.horizontalHeader.sectionClicked.connect(self.header_section_clicked)
         self.setPalette(global_parent.palette())
+        # todo: finalize this
         QtCore.QTimer.singleShot(2000, partial(self.setStyleSheet, self.global_parent.custom_style_sheet.tableview("dark")))
-
-    def show_stylesheet(self):
-        inp, _ = QtWidgets.QInputDialog.getMultiLineText(self, "Stylesheet", "Position table stylesheet", self.styleSheet())
-        if inp and _:
-            self.setStyleSheet(inp)
-        else:
-            self.setStyleSheet("")
 
     def manage_col_space(self):
         """manage column space to fit all columns in view"""
@@ -98,9 +84,9 @@ class PositionsView(QtWidgets.QTableView):
             to_drop_cols = ("name", "multiplier")
             _ = [positions_df.drop(columns=[col_], inplace=True) for col_ in to_drop_cols
                  if col_ in positions_df.columns]
-            to_show_cols = positions_df.columns.tolist()[1:]
+            to_show_cols = positions_df.columns.tolist()
             self._model = Model__PositionsTable.PositionsModel(header_labels=to_show_cols,
-                                                               data=positions_df.iloc[:, 1:])
+                                                               data=positions_df)
             self.proxy_model = TableProxies.PositionsProxy(self)
             self.proxy_model.setSourceModel(self._model)
             self.setModel(self.proxy_model)
@@ -114,6 +100,9 @@ class PositionsView(QtWidgets.QTableView):
         """start checking FutureLog file for modification"""
         self.handler.update_view()  # update view emits - file-changed signal to update the model
         logger.info("Positions Logging started")
+
+    def get_data(self) -> pd.DataFrame:
+        return self._model.get_data()
 
     def save_data(self, path: str):
         """Export data to external file"""

@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 from Libs.Concurrency import Validator, Worker
 from Libs.Storage import manage_local as localdb, encrypto
 from Libs.UI import Interact, user_login
-from Libs.UI.CustomWidgets import email_input_widget, security_question_widget, reset_password_dialog, DisclaimerDialog
+from Libs.UI.CustomWidgets import (email_input_widget, security_question_widget, reset_password_dialog,
+                                   DisclaimerDialog, PNLProfit_Dialog)
 from Libs.UI.Utils import field_validator
 from Libs.Utils import exception_handler
 from Libs.api_home import ApiHome
@@ -574,7 +575,9 @@ class LoginWindow(QMainWindow):
 def run_app():
     app = QApplication(sys.argv)
     app.setStyle("fusion")
-    w = LoginWindow()
+    # w = LoginWindow()
+    w = ApiHome()
+    # w = PNLProfit_Dialog.PNLProfit()
     w.show()
     app.exec_()
 

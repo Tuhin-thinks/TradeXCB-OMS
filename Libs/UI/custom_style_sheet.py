@@ -70,6 +70,7 @@ QStatusBar{
 }
 QTableView{
     gridline-color: rgba(255, 255, 255, 80);
+    selection-background-color: $table_view_selection_bg_color$;
 }
 QTableView::item{
     color: palette(WindowText);
@@ -337,7 +338,8 @@ QTabBar::tab:!selected {
                 "table_view_border_color": QBrush_to_Str(self.palette.text()),
                 "table_view_bg": QBrush_to_Str(self.palette.window()),
                 "table_view_grid_line_color": QBrush_to_Str(self.palette.text()),
-                "header_view_bg": palette_color_mid
+                "header_view_bg": palette_color_mid,
+                "table_view_selection_bg_color": QBrush_to_Str(self.palette.highlight()),
             }
         )
 

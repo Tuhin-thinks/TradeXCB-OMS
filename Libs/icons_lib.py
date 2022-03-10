@@ -1,6 +1,7 @@
 import os
 
 from PyQt5.QtGui import QIcon, QPixmap
+
 from Libs.Utils import settings
 
 BASE = os.path.dirname(__file__)
@@ -15,7 +16,8 @@ class Icons:
              "restart-icon-white": 'restart-icon.png',
              "stop-trading-color": "stop-icon-color.png", "current_app_logo-full": settings.CURRENT_APP_LOGO,
              "current_app_logo-image": settings.APP_LOGO_img_only, "start-trading-button": 'start-button.png',
-             'stop-trading-button': 'stop-button.png', "app-logo-alpha": "iDelta-icon-alpha.png"}
+             'stop-trading-button': 'stop-button.png', "app-logo-alpha": "iDelta-icon-alpha.png",
+             "tradexcb_logo": "tradexcb_logo.png"}
 
     def __init__(self):
         pass

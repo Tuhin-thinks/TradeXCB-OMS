@@ -156,9 +156,24 @@ def insert_user_data(f_name: str, l_name: str, user_name: str, password: str, em
             pass
 
 
-def read_api_details():
+def get_all_api_uids():
+    """
+    Get all field_name for table "table_api_details" and return as a list
+    :return:
+    """
+    conn = create_connection("sqlite3")
+    if not conn:
+        return []
+    cursor = conn.cursor()
+    cursor.execute("SELECT field_name FROM table_api_details")
+    rows = cursor.fetchall()
+    return [row[0] for row in rows]
+
+
+def read_api_details(field_name: str):
     """
     Read KiteConnect api details
+    :param field_name:
     :return:
     """
     create_tables()
@@ -169,7 +184,7 @@ def read_api_details():
         print("Failed to connect to database")
         return
     table_api_details = meta.tables['table_api_details']
-    select_query = select(table_api_details.c.value).where(table_api_details.c.field_name == "api_details")
+    select_query = select(table_api_details.c.value).where(table_api_details.c.field_name == field_name)
     res = conn.execute(select_query)
     data = res.fetchone()
     conn.close()
@@ -179,9 +194,10 @@ def read_api_details():
     return data[0]  # should be base64 encoded string
 
 
-def write_api_details(enc_string: str):
+def write_api_details(field_name: str, enc_string: str):
     """
     Write connect api details
+    :param field_name:
     :param enc_string:
     :return:
     """
@@ -197,7 +213,21 @@ def write_api_details(enc_string: str):
     VALUES(?, ?)
     ON CONFLICT(field_name) do UPDATE set value=?;
     """
-    cursor.execute(insert_query, ("api_details", enc_string, enc_string))
+    cursor.execute(insert_query, (field_name, enc_string, enc_string))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def clear_all_api_details():
+    conn = create_connection("sqlite3")
+    if not conn:
+        print('Failed to connect to database')
+    cursor = conn.cursor()
+    delete_query = """
+    DELETE from table_api_details;
+    """
+    cursor.execute(delete_query)
     conn.commit()
     conn.close()
     return True

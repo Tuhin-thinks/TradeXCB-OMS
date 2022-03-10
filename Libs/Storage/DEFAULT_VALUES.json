@@ -1,107 +1,191 @@
 {
-  "Transaction_Type": {
-    "default_value": "Sell",
-    "dropdown": true,
-    "dropdown_values": [
-      "Sell",
-      "Buy"
-    ]
-  },
-  "Entry_Time": {
-    "default_value": "",
-    "dropdown": false
-  },
-  "Exit_Time": {
-    "default_value": "15.30.00",
-    "dropdown": false
-  },
-  "Buy_Ltp_Percent": {
-    "default_value": 0.0,
-    "dropdown": false
-  },
-  "Sell_Ltp_Percent": {
-    "default_value": 0.0,
-    "dropdown": false
-  },
-  "Wait_Time": {
-    "default_value": 5.0,
-    "dropdown": false
-  },
-  "Symbol Name": {
-    "default_value": "NIFTY",
-    "dropdown": false
-  },
-  "Expiry Date": {
-    "default_value": "",
-    "dropdown": false
-  },
-  "CE_Instrument": {
-    "default_value": "ATM",
-    "dropdown": false
-  },
-  "PE_Instrument": {
-    "default_value": "ATM",
-    "dropdown": false
-  },
-  "Exchange": {
-    "default_value": "NFO",
-    "dropdown": true,
-    "dropdown_values": [
+   "transaction_type": {
+      "default_value": "Sell",
+      "dropdown": true,
+      "dropdown_values": [
+        "Buy",
+        "Sell"
+      ]
+   },
+   "buy_ltp_percent": {
+      "default_value": 0.0,
+      "dropdown": false
+   },
+   "sell_ltp_percent": {
+      "default_value": 0.0,
+      "dropdown": false
+   },
+   "order_type": {
+      "default_value": "LIMIT",
+      "dropdown": true,
+      "dropdown_values": [
+        "LIMIT",
+        "MARKET"
+      ]
+   },
+   "product_type": {
+      "default_value": "MIS",
+      "dropdown": true,
+      "dropdown_values": [
+        "MIS",
+        "NORMAL"
+      ]
+   },
+   "wait_time": {
+      "default_value": 5.0,
+      "dropdown": false
+   },
+   "Symbol Name": {
+      "default_value": "NIFTY",
+      "dropdown": false
+   },
+  "atm_strike": {
+      "default_value": null,
+      "dropdown": false
+   },
+   "expiry": {
+      "default_value": "",
+      "dropdown": false
+   },
+   "exchange": {
+      "default_value": "NFO",
+      "dropdown": true,
+      "dropdown_values": [
+      "NSE",
       "NFO",
       "CDS",
       "MCX"
-    ]
-  },
-  "No. of lots": {
-    "default_value": 1,
-    "dropdown": false
-  },
-  "stoploss_type": {
-    "default_value": "Percentage",
-    "dropdown": true,
-    "dropdown_values": [
-      "Percentage",
-      "VALUE"
-    ]
-  },
-  "CE_Stoploss": {
-    "default_value": 40.0,
-    "dropdown": false
-  },
-  "tsl_type": {
-    "default_value": "Percentage",
-    "dropdown": true,
-    "dropdown_values": [
-      "Percentage",
-      "value"
-    ]
-  },
-  "CE_TSL": {
-    "default_value": 5,
-    "dropdown": false
-  },
-  "target_type": {
-    "default_value": "Percentage",
-    "dropdown": true,
-    "dropdown_values": [
-      "Percentage",
-      "value"
-    ]
-  },
-  "CE_target": {
-    "default_value": 20.0,
-    "dropdown": false
-  },
-  "PE_Stoploss": {
-    "default_value": 40.0,
-    "dropdown": false
-  },
-  "PE_TSL": {
-    "default_value": 5,
-    "dropdown": false
-  },
-  "PE_target": {
-    "default_value": 20,
-    "dropdown": false
-  }
+      ]
+   },
+   "instrument": {
+      "default_value": null,
+      "dropdown": true,
+      "dropdown_values": []
+   },
+
+   "buy_above": {
+      "default_value": 0,
+      "dropdown": false
+   },
+   "use_priceba": {
+      "default_value": "YES",
+      "dropdown": true,
+      "dropdown_values": [
+         "YES",
+         "NO"
+      ]
+   },
+   "sell_below": {
+      "default_value": 0,
+      "dropdown": false
+   },
+   "use_pricesb": {
+      "default_value": "YES",
+      "dropdown": true,
+      "dropdown_values": [
+         "YES",
+         "NO"
+      ]
+   },
+   "stoploss_type": {
+      "default_value": "Value",
+      "dropdown": true,
+      "dropdown_values": [
+         "Value",
+         "Percentage"
+      ]
+   },
+   "stoploss": {
+      "default_value": null,
+      "dropdown": false
+   },
+   "tsl_type": {
+      "default_value": "Value",
+      "dropdown": true,
+      "dropdown_values": [
+         "Value",
+         "Percentage"
+      ]
+   },
+   "tsl": {
+      "default_value": null,
+      "dropdown": false
+   },
+   "target_type": {
+      "default_value": "Value",
+      "dropdown": true,
+      "dropdown_values": [
+         "Value",
+         "Percentage"
+      ]
+   },
+   "target": {
+      "default_value": null,
+      "dropdown": false
+   },
+   "timeframe": {
+      "default_value": 1,
+      "dropdown": true,
+      "dropdown_values": [1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180]
+   },
+   "vwap": {
+      "default_value": "NO",
+      "dropdown": true,
+      "dropdown_values": [
+         "YES",
+         "NO"
+      ]
+   },
+   "vwap_signal": {
+      "default_value": "NEW",
+      "dropdown": true,
+      "dropdown_values": [
+         "NEW",
+         "EXISTING"
+      ]
+   },
+   "ATRTS": {
+      "default_value": "YES",
+      "dropdown": true,
+      "dropdown_values": [
+         "YES",
+         "NO"
+      ]
+   },
+   "ATR TS Period": {
+      "default_value": 21,
+      "dropdown": false
+   },
+   "ATR TS Multiplier": {
+      "default_value": 3,
+      "dropdown": false
+   },
+   "atrts_signal": {
+      "default_value": "NEW",
+      "dropdown": true,
+      "dropdown_values": [
+         "NEW",
+         "EXISTING"
+      ]
+   },
+   "moving_average_period": {
+      "default_value": 21,
+      "dropdown": false
+   },
+   "moving_average": {
+      "default_value": "YES",
+      "dropdown": true,
+      "dropdown_values": [
+        "YES",
+        "NO"
+      ]
+   },
+   "moving_average_signal": {
+      "default_value": "NEW",
+      "dropdown": true,
+      "dropdown_values": [
+         "NEW",
+         "EXISTING"
+      ]
+   }
 }

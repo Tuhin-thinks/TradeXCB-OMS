@@ -1,27 +1,24 @@
+import os.path
+import pprint
 import threading
 import webbrowser
-import json
-import os.path
 
 import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from Libs import api_edit_dialog, icons_lib
-from Libs.TimeBasedStrategy.idelta_algo_executor import AlgoExecutor
 from Libs.Concurrency import UI__Runnable, CSV_Loader
-from Libs.Files import handle__SaveOpen, TradingSymbolMapping as SymbolMapping
+from Libs.Files import handle__SaveOpen, TradingSymbolMapping as SymbolMapping, handle_user_details
 from Libs.Storage import Cloud, manage_local
 from Libs.UI import Interact, Theme, home
-from Libs.UI.CustomWidgets import (Image_View_Label, LogTable, PositionsTable, Strategy,
-                                   TradingSymbolTable, NotificationWidget)
+from Libs.UI.CustomWidgets import (Image_View_Label, LogTable, PositionsTable, Strategy, PNLProfit_Dialog,
+                                   TradingSymbolTable, NotificationWidget, API_Det_TableView, OrderManagerTable)
 from Libs.UI.Utils import widget_handling
 from Libs.UI.custom_style_sheet import CustomStyleSheet
-from Libs.Utils import calculations
-from Libs.TimeBasedStrategy import config
+from Libs.Utils import calculations, config
 from Libs.globals import *
 
 BASE_DIR = os.path.dirname(__file__)
-ICONS_DIR = os.path.join(BASE_DIR, 'UI', 'icons')
 
 logger = exception_handler.getFutureLogger(__name__)
 
@@ -33,6 +30,8 @@ class ApiHome(QtWidgets.QMainWindow):
 
     def __init__(self, geometry: typing.Union[QtCore.QRect, None] = None):
         super(ApiHome, self).__init__()
+        self.grouped_positions_view = None
+        self.multi_client_view = None
         self._notif_timer = None
         self.notifications_downloading = False
         self.strategy_algorithm_object = None
@@ -54,9 +53,9 @@ class ApiHome(QtWidgets.QMainWindow):
         # -------------- some explicit value settings -----------------
         self.ui.pushButton_recal_oi_timer.setText("Refresh")
         self.setWindowTitle(f"{settings.APP_NAME} {settings.App_VERSION} {settings.EXTENSION}")
-        self.ui.label_app_logo.setPixmap(icons_lib.Icons.get_pixmap("app-logo-alpha"))  # top logo
-        self.ui.label_app_logo.setMaximumSize(100, 107)
-        self.ui.label_app_logo.setMinimumSize(90, 97)
+        self.ui.label_app_logo.setPixmap(icons_lib.Icons.get_pixmap("tradexcb_logo"))  # top logo
+        self.ui.label_app_logo.setMaximumSize(90, 90)
+        self.ui.label_app_logo.setMinimumSize(90, 90)
         self.ui.pushButton_recal_oi_timer.setIcon(icons_lib.Icons.get("restart-icon-white"))
         self.ui.pushButton_recal_oi_timer.setIconSize(QtCore.QSize(24, 24))
         self.ui.pushButton_start_trading.setIcon(QtGui.QIcon(icons_lib.Icons().get("start-trading-button")))
@@ -81,16 +80,19 @@ class ApiHome(QtWidgets.QMainWindow):
 
         self.custom_palette_now = None
         self.label_strategies_image = Image_View_Label.ImageViewer(None)
-        self.ui.gridLayout_strategies_image.addWidget(self.label_strategies_image, 1, 0, 1, 1, QtCore.Qt.AlignTop)
-        self.ui.frame_strategy_picture.setMinimumHeight(settings.MIN_HEIGHT)
-        self.ui.frame_strategy_picture.setStyleSheet("""background-color: #D9D9D9;""")  # to fit the strategy background color
         self.custom_style_sheet = CustomStyleSheet(self.palette())
 
         # ---------- show option details analysis page on window open -------------
         self.ui.tabWidget.currentChanged.connect(self.tab_index_changed)
         self.ui.tabWidget.setCurrentIndex(0)
         self.trading_sym_scroll_layout = QtWidgets.QVBoxLayout(self.ui.scrollAreaWidgetContents_trading_symb)
+        # -------------------------------------------------------------
+        self.multi_client_layout = QtWidgets.QVBoxLayout(self.ui.frame_client_acc_body)
+        self.multi_client_layout.setContentsMargins(0, 0, 0, 0)
+        self.multi_client_layout.setSpacing(0)
+        # -------------------------------------------------------------
         self.ui.scrollArea_trading_symb.verticalScrollBar().rangeChanged.connect(self.scrollBottom)
+        self.change_tab_widget_theme()
 
         # ------------ menu actions --------------
         self.repair_menu = QtWidgets.QMenu("Repair")
@@ -100,22 +102,11 @@ class ApiHome(QtWidgets.QMainWindow):
         # ------------ add available themes -------------
         self.ui.menuChoose_Theme.deleteLater()
         self.ui.menuSettings.deleteLater()
-        # for theme_name, theme_path in self.themes.items():
-        #     action = QtWidgets.QAction(theme_name, self)
-        #     action.triggered.connect(partial(self.change_theme, theme_name))
-        #     self.ui.menuChoose_Theme.addAction(action)
-
-        self.ui.actionEdit_api_details.triggered.connect(self.open_api_edit_window)
 
         # ---------- add strategies options [combobox] ----------------
-        self.ui.comboBox_strategy_select.blockSignals(True)
-        self.ui.comboBox_strategy_select.addItems(app_data.STRATEGIES)
-        self.ui.comboBox_strategy_select.blockSignals(False)
         self.ui.comboBox_trading_symb_select_strategy.addItems(app_data.STRATEGIES)
-        self.ui.comboBox_strategy_select.currentIndexChanged[str].connect(self.strategies__strategy_option_change)
         self.ui.comboBox_select_log.addItems(app_data.LOG_OPTIONS)
         # ------------ refresh the image pixmap to the label ---------------
-        QtCore.QTimer.singleShot(500, lambda: self.strategies__strategy_option_change(""))
         self.ui.comboBox_select_log.currentIndexChanged[int].connect(self.change_log_filter)
         self.ui.comboBox_trading_mode.addItems(("Real Live Trading", "Real Paper Trading"))
 
@@ -123,7 +114,7 @@ class ApiHome(QtWidgets.QMainWindow):
         # ------------ get user's saved preference for theme name (DEFAULT THEME IS DARK) --------------
         self.current_theme = theme_name = manage_local.get_user_preference_table("THEME_NAME") or "Dark"
         self.change_theme(theme_name, show_update_message=False)
-        self.ui.comboBox_strategy_select.setPalette(self.custom_palette_now)
+        # self.ui.comboBox_strategy_select.setPalette(self.custom_palette_now)
         # self.start_style_sheet_refresh_timer()  # start stylesheet refresh timer (every 5 sec update)
         with open(os.path.join(settings.DATA_FILES_DIR, "dark_style"), 'r') as reader:
             stylesheet = reader.read()
@@ -139,6 +130,8 @@ class ApiHome(QtWidgets.QMainWindow):
         self.add_log_view()
         self.add_positions_view()
         self.add_ExcelViews()
+        self.add_multi_client_view()
+        self.add_oms_view()
         self.refresh_stylesheet()
         self.check_data_files()
 
@@ -149,7 +142,7 @@ class ApiHome(QtWidgets.QMainWindow):
         self.ui.pushButton_export_positions_pos.clicked.connect(self.save_position_table)
         self.ui.pushButton_export_logs.clicked.connect(self.save_error_logs)
         self.ui.pushButton_recal_oi_timer.clicked.connect(self.restart_oi_thread)
-
+        self.ui.pushButton_positions_more.clicked.connect(self.show_grouped_positions)
         # ================= Data-Export Functions ====================
         self.ui.pushButton_save_all_strategy.clicked.connect(self.save_strategies)
 
@@ -164,14 +157,18 @@ class ApiHome(QtWidgets.QMainWindow):
         self.start_oi_thread()
         self.start_ts_data_loader_thread()
         self.start_notif_thread()
+        self.load_client_details()
 
     # -----------------------> END OF __init__ <----------------------------
-    def open_api_edit_window(self):
-        """opens API input details dialog"""
-        self.api_inp_edit_dialog = api_edit_dialog.APIDialog(self.custom_style_sheet, self.current_theme,
-                                                             self.custom_palette_now, self)
-        self.api_inp_edit_dialog.submit_clicked.connect(self.verify_api_login)
-        self.api_inp_edit_dialog.show()
+    def change_tab_widget_theme(self):
+        """
+        Change the tab widget theme to the current theme
+        :return:
+        """
+        # style = TabProxyStyle.CustomTabStyle()
+        # self.ui.tabWidget.tabBar().setStyle(style)
+        # todo: remove this function
+        pass
 
     # ======================= EXPORT SLOTS =================================
     @QtCore.pyqtSlot()
@@ -182,12 +179,12 @@ class ApiHome(QtWidgets.QMainWindow):
     @staticmethod
     def check_data_files():
         threading.Thread(target=config.download_instruments_file).start()
-    
+
     def repair_cached_files(self):
         items = (settings.DATA_FILES.get("INSTRUMENTS_CSV"), settings.DATA_FILES.get('get_user_session_pickle'))
         size = 0
         for item_path in items:
-            if os.path.exists(item_path):
+            if item_path and os.path.exists(item_path):
                 size += round(os.path.getsize(item_path) / 1000 / 1024, 2)
                 os.remove(item_path)
         self.check_data_files()
@@ -226,7 +223,6 @@ class ApiHome(QtWidgets.QMainWindow):
     def add_log_view(self):
         self.tableView_logs = LogTable.LogView(parent=self.ui.frame_bottom1, global_parent=self)
         self.ui.frame_bottom1.layout().addWidget(self.tableView_logs)
-        # self.tableView_logs.setStyleSheet(self.custom_style_sheet.tableview("dark"))
         self.palette_sensitive_widgets.append(self.tableView_logs)
         self.update()
 
@@ -245,6 +241,71 @@ class ApiHome(QtWidgets.QMainWindow):
         """
         self.opt_chain_frames = []  # store all frames containing the Excel views
         widget_handling.add_option_analysis_views(self)
+
+    def add_oms_view(self):
+        # ---------- create the view ----------
+        self.oms_view = OrderManagerTable.OMSTable()
+        self.oms_frame_layout = QtWidgets.QVBoxLayout()
+        self.ui.frame_oms_outer.setLayout(self.oms_frame_layout)
+        self.oms_frame_layout.addWidget(self.oms_view)
+
+    def add_multi_client_view(self):
+        # ------------------- multi client button frame -------------------
+        self.ui.frame_multi_client_button_frame = QtWidgets.QFrame(self.ui.frame_client_acc_body)
+        self.ui.frame_multi_client_button_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.ui.frame_multi_client_button_frame.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.ui.frame_multi_client_button_frame.setLineWidth(0)
+        self.ui.frame_multi_client_button_frame.setObjectName("frame_multi_client_button_frame")
+        self.ui.frame_client_acc_body.layout().addWidget(self.ui.frame_multi_client_button_frame)
+
+        # ------ button panel layout ------
+        pushbutton_add_client = QtWidgets.QPushButton(self.ui.frame_multi_client_button_frame)
+        pushbutton_add_client.setObjectName("pushbutton_add_client")
+        pushbutton_add_client.setText("Add Client")
+        pushbutton_add_client.setFixedSize(QtCore.QSize(100, 30))
+
+        pushbutton_save_details = QtWidgets.QPushButton(self.ui.frame_multi_client_button_frame)
+        pushbutton_save_details.setObjectName("pushbutton_save_details")
+        pushbutton_save_details.setText("Save Details")
+        pushbutton_save_details.setFixedSize(QtCore.QSize(100, 30))
+
+        pushbutton_save_details.setPalette(self.palette())
+        pushbutton_add_client.setPalette(self.palette())
+
+        h_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        self.ui.frame_multi_client_button_frame.layout = QtWidgets.QGridLayout(self.ui.frame_multi_client_button_frame)
+        self.ui.frame_multi_client_button_frame.layout.setContentsMargins(3, 5, 3, 5)
+        self.ui.frame_multi_client_button_frame.layout.setSpacing(5)
+        self.ui.frame_multi_client_button_frame.layout.setObjectName("layout_multi_client_button_frame")
+        self.ui.frame_multi_client_button_frame.layout.addWidget(pushbutton_add_client, 0, 0, 1, 1)
+        self.ui.frame_multi_client_button_frame.layout.addWidget(pushbutton_save_details, 0, 1, 1, 1)
+        self.ui.frame_multi_client_button_frame.layout.addItem(h_spacer, 0, 2, 1, 1)
+
+        pushbutton_add_client.clicked.connect(self.add_client_account)
+        pushbutton_save_details.clicked.connect(self.save_client_details)
+
+        # ------------------- multi client view -------------------
+        self.multi_client_view = API_Det_TableView.API_Det_TableView()
+        self.ui.frame_client_acc_body.layout().addWidget(self.multi_client_view)
+        self.palette_sensitive_widgets.append(self.multi_client_view)
+        self.multi_client_view.update()
+
+    def add_client_account(self):
+        self.multi_client_view.append_row()
+        self.multi_client_view.update()
+
+    def load_client_details(self):
+        data_rows = handle_user_details.read_user_api_details()
+        if data_rows:
+            self.multi_client_view.set_data(data_rows)
+
+    def save_client_details(self):
+        data_rows = self.multi_client_view.get_rows()
+        if isinstance(data_rows, list):
+            handle_user_details.clear_api_details()
+            for row in data_rows:
+                handle_user_details.save_user_api_details(row['Name'], row)
 
     def clear_future_logs(self):
         """Clears log for UI/view only"""
@@ -341,7 +402,7 @@ class ApiHome(QtWidgets.QMainWindow):
         if not self.notifications_downloading:
             self.notifications_downloading = True
             widgets_count = self.ui.scrollAreaWidgetContents_notif.layout().count()
-            for index in range(widgets_count-1, -1, -1):
+            for index in range(widgets_count - 1, -1, -1):
                 item = self.ui.scrollAreaWidgetContents_notif.layout().takeAt(index)
                 widget = item.widget()
                 self.ui.scrollAreaWidgetContents_notif.layout().removeWidget(widget)
@@ -359,7 +420,8 @@ class ApiHome(QtWidgets.QMainWindow):
 
     def add_notification_widget(self, notification_data: typing.Tuple):
         viewport_width = self.ui.scrollArea_notif.viewport().size().width()
-        _notification_widget = NotificationWidget.NotificationWidget(self.ui.scrollAreaWidgetContents_notif, viewport_width)
+        _notification_widget = NotificationWidget.NotificationWidget(self.ui.scrollAreaWidgetContents_notif,
+                                                                     viewport_width)
         _notification_widget.set_notif_time(notification_data[0])
         _notification_widget.set_notif_message(notification_data[1])
         self.ui.scrollAreaWidgetContents_notif.layout().addWidget(_notification_widget)
@@ -472,36 +534,6 @@ class ApiHome(QtWidgets.QMainWindow):
         else:
             self.ui.frame_trade_buttons.setHidden(True)
 
-    @QtCore.pyqtSlot(tuple)
-    def accept_export_instruments_data(self, *args):
-        ce_instrument, pe_instrument, strategy_name, symbol_name = args[0]
-        required_table = None
-        table_found = False
-        with open(settings.DEFAULT_DATA_FILE, 'r') as reader:
-            default_dict = json.load(reader)
-            default_dict['CE_Instrument']['default_value'] = ce_instrument
-            default_dict['PE_Instrument']['default_value'] = pe_instrument
-            default_dict['Symbol Name']['default_value'] = symbol_name
-            default_dict['Entry_Time']['default_value'] = calculations.get_default_entry_time()
-            temp_dict = {}
-            for key, value in default_dict.items():
-                temp_dict[key] = value['default_value']
-            df_ = pd.DataFrame(temp_dict, index=range(0, 1))
-
-        for strategy_table in self.strategy_tables:
-            if strategy_table.strategy == strategy_name:
-                required_table = strategy_table
-                strategy_table.load_saved_values(df_.values.tolist())
-                table_found = True
-                break
-
-        if not table_found:  # if table not already created, create a new table and add instruments to it
-            item_count = self.ui.comboBox_trading_symb_select_strategy.count()
-            choice_box = self.ui.comboBox_trading_symb_select_strategy
-            strategy_choice_index = [choice_box.itemText(_index) for _index in range(item_count)].index(strategy_name)
-            self._add_strategy(strategy_name, strategy_choice_index)
-            self.accept_export_instruments_data(*args)
-
     @QtCore.pyqtSlot()
     def add_strategy(self):
         """adds a new strategy_name table with default columns (as preset)"""
@@ -522,7 +554,8 @@ class ApiHome(QtWidgets.QMainWindow):
         self.trading_sym_scroll_layout.addWidget(strategy_frame)
 
         if strategy_text.lower() != 'pyramiding strategy':  # don't remove option if it's a pyramiding strategy
-            self.ui.comboBox_trading_symb_select_strategy.removeItem(strategy_index)  # cannot add duplicate strategy_name
+            self.ui.comboBox_trading_symb_select_strategy.removeItem(
+                strategy_index)  # cannot add duplicate strategy_name
             self.ui.comboBox_trading_symb_select_strategy.setCurrentIndex(0)  # reset to select strategy_name
 
         self.strategy_tables.append(strategy_table)  # add strategy tables to a list, for future reference
@@ -546,7 +579,7 @@ class ApiHome(QtWidgets.QMainWindow):
         """
         item_count = self.ui.comboBox_trading_symb_select_strategy.count()
         choice_box = self.ui.comboBox_trading_symb_select_strategy
-        all_cols = SymbolMapping.StrategiesColumn.all_columns
+        all_cols = SymbolMapping.StrategiesColumn.tradexcb_display_columns  # todo: finalize this
         for strategy_text, table_rows in loaded_strategies.items():
             strategy_choice_index = [choice_box.itemText(_index) for _index in range(item_count)].index(strategy_text)
             self._add_strategy(strategy_text, strategy_choice_index)
@@ -574,20 +607,6 @@ class ApiHome(QtWidgets.QMainWindow):
         """scroll to bottom of scroll area, when new strategy_name table added"""
         self.ui.scrollArea_trading_symb.verticalScrollBar().setValue(max_)
 
-    @QtCore.pyqtSlot(str)
-    def strategies__strategy_option_change(self, curr_text: str):
-        """change strategy_name tab label's pixmap"""
-        if curr_text == '':  # curr_text sent as '' to render initial pixmap
-            _default_strategy_name = app_data.STRATEGIES[0]
-            curr_text = _default_strategy_name
-        _img_path = os.path.join(ICONS_DIR, 'strategies', "iDelta+Strategies",
-                                 f"{app_data.strategies_name_to_img_mapper.get(curr_text)}.PNG")
-        if not os.path.exists(_img_path):
-            return
-        pixmap = QtGui.QPixmap(_img_path)
-        self.label_strategies_image.update_pixmap(pixmap)
-        self.update()
-
     @QtCore.pyqtSlot()
     def save_position_table(self):
         try:
@@ -595,6 +614,12 @@ class ApiHome(QtWidgets.QMainWindow):
             self.positionView.save_data(path)  # path validity checking done inside this function
         except Exception as e:
             logger.warning(f"Error saving file: {e.__str__()}")
+
+    @QtCore.pyqtSlot()
+    def show_grouped_positions(self):
+        positions_df = self.positionView.get_data()
+        self.grouped_positions_view = PNLProfit_Dialog.PNLProfitDialog(positions_df)
+        self.grouped_positions_view.show()
 
     @QtCore.pyqtSlot()
     def save_error_logs(self):

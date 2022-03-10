@@ -63,17 +63,6 @@ class strategy_frame(QtWidgets.QWidget):
             )
             if _customizations:
                 self.strategy_table.insert_row(_customizations)
-            elif "pyramiding" in self.strategy_table.name().lower():
-                self.launch_builder()
-
-    def launch_builder(self):
-        instr_df = pd.read_csv(settings.DATA_FILES.get('INSTRUMENTS_CSV'))
-        instr_df['days2expire'] = (pd.to_datetime(instr_df.expiry).dt.date - datetime.today().date()).dt.days
-        instr_df = instr_df[instr_df['days2expire'] < 120]
-        name_exp_df = instr_df[instr_df['name'].isin(app_data.SYMBOL_LIST)].loc[:, ["name", "expiry"]]
-        row_collection = StrategyBuilder(name_exp_df).exec_()
-        if row_collection:
-            self.strategy_table.insert_row(row_collection)
 
     @QtCore.pyqtSlot()
     def add_symbol_row(self):
@@ -82,12 +71,15 @@ class strategy_frame(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def delete_symbol_row(self):
         self.strategy_table: QtWidgets.QTableView
-        for model_index in self.strategy_table.selectedIndexes():
-            row_index = model_index.row()
+        deleted_rows_count = 0
+        selected_rows = list({x.row() for x in self.strategy_table.selectedIndexes()})
+        for row_index in sorted(selected_rows, reverse=True):
             res = self.strategy_table.remove_row(row_index)  # res can be False or SymbolName (returned from model)
             if res is not False:
-                message.show_message(self, "Success", f"<b>row: {row_index}</b> removed successfully", "info")
-            break
+                deleted_rows_count += 1
+        if deleted_rows_count > 0:
+            message.show_message(self, "Successfully Deleted Selected Rows", f"<b>{deleted_rows_count} Rows</b> "
+                                                                             f"removed successfully", "info")
 
     @QtCore.pyqtSlot()
     def confirm_delete(self):
