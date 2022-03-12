@@ -26,7 +26,6 @@ DATA_FILES = {
     "tradexcb_excel_file": os.path.join(DATA_FILES_DIR, "tradexcb_strategy.xlsx"),
     "POSITIONS_FILE_PATH": os.path.join(DATA_FILES_DIR, "PNLATRTS_All_User.csv"),
     "INSTRUMENTS_CSV": os.path.join(DATA_FILES_DIR, "Instruments.csv"),
-    # "get_user_session_pickle": os.path.join(TB_DATA_FOLDER, "token.pickle"),
     "symbols_mapping_csv": os.path.join(DATA_FILES_DIR, "SYMBOL_MAPPING.csv")
 }
 TRADING_NAME_INDEX_MAPPING = {
@@ -43,6 +42,4 @@ THEME_NAME_MAPPING = {
     "Dark.xml": ":/icons/app_logo_white.png"
 
 }
-# if not os.path.exists(TB_DATA_FOLDER):
-#     os.mkdir(TB_DATA_FOLDER)
 days2_expire = 60

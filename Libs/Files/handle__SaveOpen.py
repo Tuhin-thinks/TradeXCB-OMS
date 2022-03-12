@@ -1,4 +1,6 @@
+import shutil
 import re
+
 import openpyxl
 from PyQt5 import QtWidgets, QtCore
 
@@ -30,6 +32,14 @@ def save_file(parent, caption, directory, filter_str):
         if not file_path.endswith(f".{extension}"):
             file_path = f"{file_path}.{extension}"
     return file_path
+
+
+def copy_file(src_file: str, dst_file: str):
+    try:
+        shutil.copy(src_file, dst_file)
+    except Exception as e:
+        logger.error(f"Error copying file: {e}")
+        return
 
 
 def delete_excel_sheet(sheet):

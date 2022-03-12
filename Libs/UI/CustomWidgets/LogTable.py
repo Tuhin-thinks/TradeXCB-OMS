@@ -1,6 +1,8 @@
+import threading
 import csv
 
 from Libs.globals import *
+from Libs.Files import handle__SaveOpen
 from Libs.UI.Models_n_Delegates.Model__LogView import LogModel
 from Libs.UI.Proxies.TableProxies import LogProxyModel
 from Libs.UI.Utils import FS__EventHandLer
@@ -84,10 +86,7 @@ class LogView(QtWidgets.QTableView):
     def save_data(self, path):
         """save all logs to csv file"""
         if path:
-            data = self._model.get_data()
-            with open(path, 'w') as writer:
-                logs_writer = csv.writer(writer, delimiter=',', lineterminator='\n')
-                logs_writer.writerows(data)
+            threading.Thread(target=handle__SaveOpen.copy_file, args=(self.watch_loc, path)).start()
 
     def deleteLater(self) -> None:
         """when tableview is destroyed, stop observer instance"""

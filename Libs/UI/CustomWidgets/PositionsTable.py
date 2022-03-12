@@ -61,13 +61,13 @@ class PositionsView(QtWidgets.QTableView):
 
     def display_profit_calculations(self, df_):
         # -------- sell & buy qty ----------
-        sell_qty = df_[df_["Transaction_Type"] == "Sell"]["quantity"].sum()
+        sell_qty = df_[df_["Trend"].str.lower() == "sell"]["quantity"].sum()
         self.global_parent.ui.label_options_cal_c.setText(f"Sell Qty : {sell_qty}")
-        buy_qty = df_[df_["Transaction_Type"] == "Buy"]["quantity"].sum()
+        buy_qty = df_[df_["Trend"].str.lower() == "buy"]["quantity"].sum()
         self.global_parent.ui.label_optionscalc_l.setText(f"Buy Qty : {buy_qty}")
 
         #  ------- Profit & Loss ----------
-        tot_profit = df_["CE_Profit"].dropna().sum() + df_["PE_Profit"].dropna().sum()
+        tot_profit = df_["profit"].dropna().sum()
         if tot_profit < 0:
             style_sheet = "QLabel { color: red;}"
         else:

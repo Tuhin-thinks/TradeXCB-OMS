@@ -8,8 +8,7 @@ from Libs.Utils import exception_handler
 logger = exception_handler.getFutureLogger("load_data")
 
 
-def read_user_api_details(unique_identifier: typing.Union[None, str] = None) -> typing.Union[typing.List[typing.Dict],
-                                                                                             typing.Dict]:
+def read_user_api_details(unique_identifier: typing.Union[None, str] = None) -> typing.List[typing.Dict]:
     """LOAD user's API details"""
     settings_dict = dict(zip(app_data.API_DETAILS_COLUMNS, [""] * len(app_data.API_DETAILS_COLUMNS)))
     try:

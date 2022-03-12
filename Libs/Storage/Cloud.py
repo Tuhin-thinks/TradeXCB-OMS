@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, Table, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.schema import MetaData
 
-from Libs.Storage import encrypto, manage_local as localdb
+from Libs.Storage import encrypto
 from Libs.globals import *
 
 logger = exception_handler.getFutureLogger(__name__)
@@ -18,8 +18,8 @@ logger = exception_handler.getFutureLogger(__name__)
 END_POINT = "clientstore-do-user-10490870-0.b.db.ondigitalocean.com"
 PORT = "25060"
 DB_NAME = "ClientStore"
-DEFAULT_USERNAME = "idelta_trial"
-DEFAULT_PASSWORD = "idelta_algobeacon"
+DEFAULT_USERNAME = "mxcb_lt"
+DEFAULT_PASSWORD = "mxcb_algobeacon"
 
 
 class RequestRegistration:

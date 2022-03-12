@@ -14,7 +14,7 @@ class API_Det_TableView(QtWidgets.QTableView):
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         # self.setAlternatingRowColors(True)
-        self.setSortingEnabled(True)
+        # self.setSortingEnabled(True)
         self._model = Model__API_Det.Model_API_Det(parent=None, data=None)
         self.setModel(self._model)
         self.setItemDelegate(Model__API_Det.Delegate_API_Det(parent=self))

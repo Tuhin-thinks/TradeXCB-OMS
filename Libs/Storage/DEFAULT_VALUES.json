@@ -96,7 +96,7 @@
       ]
    },
    "stoploss": {
-      "default_value": null,
+      "default_value": 0,
       "dropdown": false
    },
    "tsl_type": {
@@ -108,7 +108,7 @@
       ]
    },
    "tsl": {
-      "default_value": null,
+      "default_value": 0,
       "dropdown": false
    },
    "target_type": {
@@ -120,7 +120,7 @@
       ]
    },
    "target": {
-      "default_value": null,
+      "default_value": 0,
       "dropdown": false
    },
    "timeframe": {

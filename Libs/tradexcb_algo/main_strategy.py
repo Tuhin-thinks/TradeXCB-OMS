@@ -1,26 +1,22 @@
-import logging
-import sys
-# import  datetime
-import time
-from datetime import datetime, date, timedelta
 import os
-import pandas as pd
+import sys
+import time
+from datetime import datetime, timedelta
+
 import numpy as np
-from TA_Lib import SMA, HA
-import xlwings as xw
-from main_broker_api import All_Broker
+import openpyxl
+import pandas as pd
 import talib
 
-from Libs.Utils import settings
+from Libs.Files import handle_user_details
+from Libs.Files.TradingSymbolMapping import StrategiesColumn
+from Libs.Utils import settings, exception_handler
+from .TA_Lib import HA
+from .main_broker_api import All_Broker
 
 pd.set_option('expand_frame_repr', False)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s  %(levelname)-10s  %(message)s')
-file_handler = logging.FileHandler('logs/MultiClient_MultiBroker_{}'.format(time.strftime('%Y-%m-%d.log')))
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+logger = exception_handler.getFutureLogger(__name__)
 
 nine_fifteen = datetime.now().replace(hour=9, minute=15, second=0, microsecond=0)
 three_thirty = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
@@ -211,32 +207,39 @@ def main(manager_dict: dict):
     Main function to run the strategy
     :param manager_dict: Dictionary to handle the shared data
         - Keys:
-            - 'algo_running': bool to check if the algo is running (handled externally) *don't use inside algo*
+            - 'algo_running': bool to check if the algo is running
             - 'algo_error': to store the algo error message
-            - 'force_stop': Boolean to stop the strategy algo
+            - 'force_stop': Boolean to stop the strategy algo (don't modify inside algo)
             - 'orderbook_data': to store the orderbook data
     :return: None
     """
     # Variables
-    paper_trade = 0
+    paper_trade = manager_dict['paper_trade']
     users_df_dict = None
-    main_broker = None
+    main_broker: All_Broker.All_Broker = None
     users_df = None
     instruments_df = None
     # instruments_df_dict = None
 
     # Workbook
-    wb = xw.Book(settings.DATA_FILES.get('tradexcb_excel_file'))
-    # sheet
-    live_pnl_sheet = wb.sheets['LIVE PNL']
+    # wb = xw.Book(settings.DATA_FILES.get('tradexcb_excel_file'))
+    wb = openpyxl.load_workbook(settings.DATA_FILES['tradexcb_excel_file'])
 
-    ## DO login for All users
+    # DO login for All users
     process_name = 'User Login Process'
     try:
         logger.info(f"Doing {process_name}")
-        user_sheet = wb.sheets['User Details']
-        users_df = user_sheet.range('A1').options(pd.DataFrame, header=1, index=False,
-                                                  expand='table').value
+        # user_sheet = wb.sheets['User Details']
+        # users_df = user_sheet.range('A1').options(pd.DataFrame, header=1, index=False,
+        #                                           expand='table').value
+        api_data = handle_user_details.read_user_api_details(None)
+        if api_data is None:
+            manager_dict['algo_error'] = f"{process_name} failed, No API details found"
+            manager_dict['algo_running'] = False
+            logger.critical("No API details found")
+            raise Exception('No API details found')
+
+        users_df = pd.DataFrame(api_data)  # read all data from sqlite
         users_df.index = users_df['Name']
         users_df = users_df.tail(1)
         users_df['broker'] = None
@@ -245,31 +248,40 @@ def main(manager_dict: dict):
             try:
                 this_user = users_df_dict[each_key]
                 this_user['broker'] = All_Broker.All_Broker(**this_user)
-                # print("Hi")
             except:
-                logger.info(f"Error in Logging in for Name : {each_key} Error : {sys.exc_info()}")
+                logger.warning(f"Error in Logging in for Name : {each_key} Error : {sys.exc_info()}", exc_info=True)
+                manager_dict['algo_error'] = f"{process_name} failed, Error in Logging in for Name : {each_key}"
+                manager_dict['algo_running'] = False
+                return
     except:
-        logger.info(f"Error in {process_name}. Error : {sys.exc_info()} ")
+        logger.warning(f"Error in {process_name}. Error : {sys.exc_info()} ")
+        manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+        manager_dict['algo_running'] = False
+        return
 
     process_name = 'Setting Main Broker'
     try:
-        logger.info(f"{process_name} for Data Feed")
-        main_broker = users_df_dict[list(users_df_dict.keys())[0]][
-            'broker']  ##### Main Broker for Getting LTPS and Historic Data
-        assert main_broker.broker_name in ['ZERODHA', 'IIFL'], f"Main Broker for Data Feed is not ZERODHA or IIFL"
-    except:
-        logger.info(f"Error in {process_name}")
-
-    ## Remove this Later
-
-    # del users_df_dict['c']
+        logger.warning(f"{process_name} for Data Feed")
+        main_broker: All_Broker.All_Broker = users_df_dict[list(users_df_dict.keys())[0]][
+            'broker']  # Main Broker for Getting LTPs and Historic Data
+        assert main_broker.broker_name.lower() in ['zerodha',
+                                                   'iifl'], f"Main Broker for Data Feed is not ZERODHA or IIFL"
+    except Exception as e:
+        logger.critical(f"Error in {process_name}", exc_info=True)
+        manager_dict['algo_running'] = False
+        manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+        return
 
     process_name = 'Get All Instruments to Trade'
     try:
         logger.info(f"Doing {process_name}")
-        instrument_sheet = wb.sheets['Instrument details']
-        instruments_df = instrument_sheet.range('A1').options(pd.DataFrame, header=1, index=False,
-                                                              expand='table').value
+        instrument_sheet = wb['Sheet1']
+        # load openpyexcel sheet to dataframe
+        instruments_df = pd.DataFrame(instrument_sheet.values)
+        columns = instruments_df.iloc[0]
+        instruments_df.columns = columns
+        instruments_df = instruments_df.iloc[1:]
+        instruments_df = instruments_df.astype(StrategiesColumn.tradexcb_numeric_columns)
 
         instruments_df['running_trend'] = None
         instruments_df['multiplier'] = None
@@ -317,16 +329,19 @@ def main(manager_dict: dict):
             main_broker.latest_ltp[each_instrument] = {'ltp': None}
     except:
         logger.info(f"Error in {process_name}. Error : {sys.exc_info()} ")
+        manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+        manager_dict['algo_running'] = False
+        raise Exception(f"{process_name} failed, Error : {sys.exc_info()}")
 
-    ## Running Strategy Now for All the Instruments
+    # Running Strategy Now for All the Instruments
     main_broker.get_live_ticks()
     time.sleep(5)
     logger.info(f"Starting Strategy")
     final_df = pd.DataFrame(columns=list(instruments_df.columns) + ['ltp', 'tradingsymbol'])
     # main_broker : All_Broker.All_Broker
-    del users_df_dict[0]
+    # del users_df_dict[0]
 
-    while True:
+    while manager_dict['force_stop'] is False:
         if datetime.now() < nine_sixteen:
             continue
 
@@ -347,12 +362,16 @@ def main(manager_dict: dict):
                 final_df_temp['quantity'] = final_df_temp['quantity'] * no_of_lots
                 final_df_temp['profit'] = (final_df_temp['ltp'] - final_df_temp['entry_price']) * final_df_temp[
                     'quantity'] * final_df_temp['multiplier']
-                final_df_temp['user_id'] = this_user.all_data_kwargs['accountUserName']
+                final_df_temp['user_id'] = this_user['accountUserName']
                 final_all_user_df = final_all_user_df.append(final_df_temp, ignore_index=True)
-            except:
-                logger.info(f"{sys.exc_info()}")
+            except Exception as e:
+                logger.critical(f"{sys.exc_info()}", exc_info=True)
+                manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+                manager_dict['algo_running'] = False
+                return
 
-        final_all_user_df.to_csv("PNLATRTS_All_User.csv")  # TODO PNL of all users by the lot executed by the user
+        final_all_user_df.to_csv(
+            settings.DATA_FILES.get('POSITIONS_FILE_PATH'))  # TODO PNL of all users by the lot executed by the user
 
         order_book_dict = dict()
         for each_user in users_df_dict:
@@ -360,34 +379,38 @@ def main(manager_dict: dict):
                 this_user = users_df_dict[each_user]
                 if this_user['broker'] is None:
                     continue
-                order_book = this_user.get_order_book()
-                order_book['username'] = this_user.all_data_kwargs['accountUserName']
-                if this_user.broker_name in order_book_dict:
-                    order_book[this_user.broker_name] = order_book[this_user.broker_name].append(order_book,
-                                                                                                 ignore_index=True)
+                order_book: pd.DataFrame = this_user['broker'].get_order_book()
+                order_book['username'] = this_user['accountUserName']
+                order_book['broker__cancel_order'] = this_user['broker'].cancel_order  # call this from UI (button click)
+                if this_user['broker'].broker_name in order_book_dict:
+                    order_book_dict[this_user['broker'].broker_name].append(order_book, ignore_index=True)
                 else:
-                    order_book[this_user.broker_name] = order_book
-            except:
-                logger.info(f"{sys.exc_info()}")
+                    order_book_dict[this_user['broker'].broker_name] = order_book
+            except Exception as e:
+                logger.critical(f"{sys.exc_info()}", exc_info=True)
+                manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+                manager_dict['algo_running'] = False
+                return
 
         for each_key in order_book_dict:
             try:
                 order_book_dict[each_key] = list(order_book_dict[each_key].to_dict('index').values())
-            except:
-                logger.info(f"Error in Creating Order Book {sys.exc_info()}")
+            except Exception as e:
+                logger.critical(f"Error in Creating Order Book {e.__str__()}", exc_info=True)
 
         # TODO order_book_dict # This contains Orderbook of all the clients
+        manager_dict['orderbook_data'] = order_book_dict  # pass the dictionary to the UI
 
         curr_date = datetime.now()
+        process_name = 'Main Strategy'
         for each_key in instruments_df_dict:
-            process_name = 'Main Strategy'
             try:
                 this_instrument = instruments_df_dict[each_key]
                 ltp = main_broker.latest_ltp[this_instrument['instrument_token']]['ltp']
 
                 if (int((curr_date - nine_fifteen).seconds / 60) % this_instrument['timeframe'] > 0) or (
-                        int((curr_date - nine_fifteen).seconds / 60) % this_instrument[
-                    'timeframe'] == 0 and curr_date.second > 30) and this_instrument['run_done'] == 1:
+                        int((curr_date - nine_fifteen).seconds / 60) % this_instrument['timeframe'] == 0 and
+                        curr_date.second > 30) and this_instrument['run_done'] == 1:
                     this_instrument['run_done'] = 0
 
                 if int((curr_date - nine_fifteen).seconds / 60) % this_instrument[
@@ -396,7 +419,7 @@ def main(manager_dict: dict):
                     this_instrument['run_done'] = 1
                     logger.info(f"Running the {process_name} for {this_instrument['tradingsymbol']}")
                     df = main_broker.get_data(this_instrument['instrument_token'],
-                                              str(int(this_instrument['timeframe'])), 'minute', from_dt, to_dt)
+                                              str(int(this_instrument['timeframe'])), 'minute', from_dt, to_dt)[0]
                     df = df[df.index < datetime.now().replace(microsecond=0, second=0)]
                     time_df_col = df.index
                     df = HA(df, ohlc=['open', 'high', 'low', 'close'])
@@ -415,12 +438,12 @@ def main(manager_dict: dict):
 
                         if this_instrument['atrts_signal'] == 'new':
                             atr_trend_bearish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'down') & (
-                                        df['SUPERTREND'].tail(2).head(1).values[0] == 'up')) else 0
+                                    df['SUPERTREND'].tail(2).head(1).values[0] == 'up')) else 0
                             atr_trend_bullish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'up') & (
-                                        df['SUPERTREND'].tail(2).head(1).values[0] == 'down')) else 0
+                                    df['SUPERTREND'].tail(2).head(1).values[0] == 'down')) else 0
                         if this_instrument['atrts_signal'] == 'existing':
-                            atr_trend_bearish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'down')) else 0
-                            atr_trend_bullish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'up')) else 0
+                            atr_trend_bearish = 1 if (df['SUPERTREND'].tail(1).head(1).values[0] == 'down') else 0
+                            atr_trend_bullish = 1 if (df['SUPERTREND'].tail(1).head(1).values[0] == 'up') else 0
 
                     else:
                         atr_trend_bullish = 1
@@ -434,9 +457,9 @@ def main(manager_dict: dict):
 
                         if this_instrument['vwap_signal'] == 'new':
                             vwap_trend_bullish = 1 if (df['HA_close'].tail(1).head(1).values[0] > vwap) and (
-                                        df['HA_close'].tail(2).head(1).values[0] < this_instrument['vwap_last']) else 0
+                                    df['HA_close'].tail(2).head(1).values[0] < this_instrument['vwap_last']) else 0
                             vwap_trend_bearish = 1 if (df['HA_close'].tail(1).head(1).values[0] < vwap) and (
-                                        df['HA_close'].tail(2).head(1).values[0] > this_instrument['vwap_last']) else 0
+                                    df['HA_close'].tail(2).head(1).values[0] > this_instrument['vwap_last']) else 0
 
                         if this_instrument['vwap_signal'] == 'existing':
                             vwap_trend_bullish = 1 if (df['HA_close'].tail(1).head(1).values[0] > vwap) else 0
@@ -463,9 +486,9 @@ def main(manager_dict: dict):
 
                         if this_instrument['dc_signal'] == 'existing':
                             ma_trend_bullish = 1 if (
-                                        df[row_name].tail(1).values[0] < df['HA_close'].tail(1).values[0]) else 0
+                                    df[row_name].tail(1).values[0] < df['HA_close'].tail(1).values[0]) else 0
                             ma_trend_bearish = 1 if (
-                                        df[row_name].tail(1).values[0] >= df['HA_close'].tail(1).values[0]) else 0
+                                    df[row_name].tail(1).values[0] >= df['HA_close'].tail(1).values[0]) else 0
                     else:
                         ma_trend_bullish = 1
                         ma_trend_bearish = 1
@@ -545,9 +568,9 @@ def main(manager_dict: dict):
 
                         logger.info(f" Instrument_Details : {this_instrument}")
 
-
-                    elif price_above_trend_bearish and price_trend_bearish and ma_trend_bearish and vwap_trend_bearish and atr_trend_bearish and \
-                            this_instrument['multiplier'] != -1 and this_instrument['transaction_type'] == 'SELL':
+                    elif (price_above_trend_bearish and price_trend_bearish and ma_trend_bearish and
+                          vwap_trend_bearish and atr_trend_bearish and
+                          this_instrument['multiplier'] != -1 and this_instrument['transaction_type'] == 'SELL'):
                         logger.info(f" In Sell Loop. for {this_instrument['tradingsymbol']}")
                         logger.info(f" Sell Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
@@ -641,8 +664,8 @@ def main(manager_dict: dict):
                             continue
 
                     if paper_trade == 0:
-                        if ltp * this_instrument['multiplier'] <= this_instrument['entry_price'] * this_instrument[
-                            'multiplier']:
+                        if (ltp * this_instrument['multiplier']
+                                <= this_instrument['entry_price'] * this_instrument['multiplier']):
                             for each_user in this_instrument['entry_order_ids']:
                                 this_user_order_details = this_instrument['entry_order_ids'][each_user]
                                 broker = this_user_order_details['broker']
@@ -677,13 +700,13 @@ def main(manager_dict: dict):
                                      'quantity': int(this_instrument['quantity']),
                                      'product': this_instrument['product_type'],
                                      'transaction_type': 'SELL' if this_instrument[
-                                                                       'transaction_type'] is 'BUY' else 'SELL',
+                                                                       'transaction_type'] == 'BUY' else 'SELL',
                                      'order_type': 'SL',
                                      'price': this_instrument['sl_price'],
                                      'validity': 'DAY',
                                      'disclosed_quantity': None,
                                      'trigger_price': this_instrument['sl_price'] - this_instrument['tick_size'] if
-                                     this_instrument['transaction_type'] is 'BUY' else this_instrument['sl_price'] + 1 *
+                                     this_instrument['transaction_type'] == 'BUY' else this_instrument['sl_price'] + 1 *
                                                                                        this_instrument['tick_size'],
                                      'squareoff': None,
                                      'stoploss': None,
@@ -699,7 +722,7 @@ def main(manager_dict: dict):
                                     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
                                     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
                                 except:
-                                    logger.info(
+                                    logger.critical(
                                         f"Error in SL Order Placement for {this_user['Name']} Error {sys.exc_info()}")
 
                             continue
@@ -733,8 +756,8 @@ def main(manager_dict: dict):
                                              'tradingsymbol': this_instrument['tradingsymbol'],
                                              'quantity': int(this_instrument['quantity']),
                                              'product': this_instrument['product_type'],
-                                             'transaction_type': 'SELL' if this_instrument[
-                                                                               'transaction_type'] is 'BUY' else 'SELL',
+                                             'transaction_type': ('SELL' if this_instrument[
+                                                                                'transaction_type'] == 'BUY' else 'SELL'),
                                              'order_type': 'MARKET',
                                              'price': None,
                                              'validity': 'DAY',
@@ -750,8 +773,9 @@ def main(manager_dict: dict):
                                     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
                                     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
                             except:
-                                logger.info(
-                                    f"Error in Closing Order Placement for {this_user['Name']} Error {sys.exc_info()}")
+                                logger.critical(
+                                    f"Error in Closing Order Placement for {this_user['Name']} Error {sys.exc_info()}",
+                                    exc_info=True)
 
                         # final_df = final_df[final_df['Row_Type']!='T']
                         this_instrument['Row_Type'] = 'F'
@@ -772,10 +796,8 @@ def main(manager_dict: dict):
                         this_instrument['target_order_id'] = None
                         this_instrument['Row_Type'] = 'T'
 
-
-
-                    elif ltp * this_instrument['multiplier'] <= this_instrument['sl_price'] * this_instrument[
-                        'multiplier']:
+                    elif (ltp * this_instrument['multiplier'] <=
+                          this_instrument['sl_price'] * this_instrument['multiplier']):
 
                         logger.info(f"Stoploss has been Hit for {this_instrument['tradingsymbol']}")
                         this_instrument['exit_time'] = datetime.now()
@@ -798,8 +820,8 @@ def main(manager_dict: dict):
                                              'tradingsymbol': this_instrument['tradingsymbol'],
                                              'quantity': int(this_instrument['quantity']),
                                              'product': this_instrument['product_type'],
-                                             'transaction_type': 'SELL' if this_instrument[
-                                                                               'transaction_type'] is 'BUY' else 'SELL',
+                                             'transaction_type': ('SELL' if this_instrument['transaction_type'] == 'BUY'
+                                                                  else 'SELL'),
                                              'order_type': 'MARKET',
                                              'price': None,
                                              'validity': 'DAY',
@@ -814,9 +836,9 @@ def main(manager_dict: dict):
                                     order_id, message = this_user['broker'].place_order(**new_order)
                                     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
                                     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
-                            except:
-                                logger.info(
-                                    f"Error in Closing Order Placement for {this_user['Name']} Error {sys.exc_info()}")
+                            except Exception as e:
+                                logger.critical(f"Error in Closing Order Placement for {this_user['Name']}"
+                                                f" Error {sys.exc_info()}", exc_info=True)
 
                         # final_df = final_df[final_df['Row_Type'] != 'T']
                         this_instrument['Row_Type'] = 'F'
@@ -857,8 +879,8 @@ def main(manager_dict: dict):
                                              'tradingsymbol': this_instrument['tradingsymbol'],
                                              'quantity': int(this_instrument['quantity']),
                                              'product': this_instrument['product_type'],
-                                             'transaction_type': 'SELL' if this_instrument[
-                                                                               'transaction_type'] is 'BUY' else 'SELL',
+                                             'transaction_type': ('SELL' if this_instrument['transaction_type'] == 'BUY'
+                                                                  else 'SELL'),
                                              'order_type': 'MARKET',
                                              'price': None,
                                              'validity': 'DAY',
@@ -874,8 +896,8 @@ def main(manager_dict: dict):
                                     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
                                     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
                             except:
-                                logger.info(
-                                    f"Error in Closing Order Placement for {this_user['Name']} Error {sys.exc_info()}")
+                                logger.critical(f"Error in Closing Order Placement for {this_user['Name']}"
+                                                f" Error {sys.exc_info()}", exc_info=True)
 
                         # final_df = final_df[final_df['Row_Type'] != 'T']
                         this_instrument['Row_Type'] = 'F'
@@ -899,13 +921,13 @@ def main(manager_dict: dict):
                         # Cancel the SL Order placed and Place a opposite Limit Order which with Buffer and Close open position
                         this_instrument['close_positions'] = 0
                         continue
-            except:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(exc_type, fname, exc_tb.tb_lineno)
-                logger.info('Error in While True loop Strategy Function.')
+            except Exception as e:
+                logger.critical(f'Error in {process_name} Strategy Function. {e.__str__()}', exc_info=True)
+                manager_dict['algo_error'] = f"Error in Strategy Function, Error: {sys.exc_info()}"
+                manager_dict['algo_running'] = False
+                return
 
 
 if __name__ == '__main__':
-    instruments_df_dict = dict()
-    main()
+    # instruments_df_dict = dict()
+    main(manager_dict={'paper_trade': 0, 'algo_running': True, 'fore_stop': True, 'algo_error': None})

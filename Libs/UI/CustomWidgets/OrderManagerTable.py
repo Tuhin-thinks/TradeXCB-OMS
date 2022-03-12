@@ -1,3 +1,5 @@
+import typing
+
 from PyQt5 import QtWidgets, QtGui
 
 from Libs.UI.Models_n_Delegates import Model_OMS
@@ -23,15 +25,14 @@ class OMSTable(QtWidgets.QTableView):
         if per_col_width < 100:
             return
         for col_index in range(self.__model.columnCount()):
-            col_width = self.columnWidth(col_index)
             self.setColumnWidth(col_index, per_col_width)
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         super(OMSTable, self).resizeEvent(e)
         self.increase_col_space()
 
-    def append_row(self):
-        self.__model.append_row()
+    def update_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):
+        self.__model.populate(data_dict=data)
 
     def delete_row(self):
         try:

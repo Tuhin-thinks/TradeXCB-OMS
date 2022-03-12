@@ -66,7 +66,8 @@ class ButtonDelegate(QtWidgets.QStyledItemDelegate):
 class OMSModel(QtCore.QAbstractTableModel):
     def __init__(self, parent=None):
         super(OMSModel, self).__init__(parent)
-        self.__data = []
+        self.__data = {}
+        self.__key_list = []
         self.header_labels = app_data.OMS_TABLE_COLUMNS
 
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -75,13 +76,18 @@ class OMSModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self.header_labels)
 
+    def populate(self, data_dict: typing.Dict[str, typing.Dict[str, typing.Any]]):
+        self.beginResetModel()
+        self.__data = data_dict
+        self.__key_list = list(data_dict.keys())
+        self.endResetModel()
+
     def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-            return None
-        elif role == Qt.DisplayRole:
-            return self.__data[index.row()][index.column()]
+        col_name = self.header_labels[index.column()]
+        if role == Qt.DisplayRole:
+            return self.__data[self.__key_list[index.row()]][col_name]
         elif role == Qt.EditRole:
-            return self.__data[index.row()][index.column()]
+            return self.__data[self.__key_list[index.row()]][col_name]
         elif role == Qt.TextAlignmentRole:
             return Qt.AlignCenter
 
@@ -89,13 +95,15 @@ class OMSModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return False
         col_name = self.header_labels[index.column()]
-        # if role == Qt.EditRole and col_name in ("Stoploss", "Target", "MODIFY", "CLOSE_Position"):
-        if role == Qt.EditRole and col_name in ("Stoploss", "Target", "MODIFY", "CLOSE_Position", "Status"):
-            self.__data[index.row()][index.column()] = value
+        # if role == Qt.EditRole and col_name in ("Stoploss", "Target", "MODIFY", "CLOSE_Position", "Status"):
+        if role == Qt.EditRole and col_name in ("Stoploss", "Target", "MODIFY", "CLOSE_Position"):
+            self.__data[self.__key_list[index.row()]][col_name] = value
             self.dataChanged.emit(index, index)
-            if col_name == "Status":
-                close_pos_model_index = self.index(index.row(), app_data.OMS_TABLE_COLUMNS.index("CLOSE_Position"))
-                self.dataChanged.emit(close_pos_model_index, close_pos_model_index)
+            # TODO: Remove this line after testing
+            # self.__data[index.row()][index.column()] = value
+            # if col_name == "Status":
+            #     close_pos_model_index = self.index(index.row(), app_data.OMS_TABLE_COLUMNS.index("CLOSE_Position"))
+            #     self.dataChanged.emit(close_pos_model_index, close_pos_model_index)
             return True
         return False
 
@@ -104,7 +112,7 @@ class OMSModel(QtCore.QAbstractTableModel):
             return Qt.ItemIsEnabled
         col_name = self.header_labels[index.column()]
         if col_name in ("Stoploss", "Target", "MODIFY", "CLOSE_Position"):
-            order_status = self.__data[index.row()][self.header_labels.index('Status')]
+            order_status = self.__data[self.__key_list[index.row()]]["Status"]
             if order_status and ("placed" in order_status.lower() or "executed" in order_status.lower()):
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
             return Qt.ItemIsSelectable
@@ -118,14 +126,14 @@ class OMSModel(QtCore.QAbstractTableModel):
                 return section + 1
 
     # -------- custom functions --------
-    def append_row(self, row: typing.List[typing.Any] = None):
-        if not row:
-            row = [None] * len(self.header_labels)
-        self.beginInsertRows(QtCore.QModelIndex(), self.rowCount(), self.rowCount())
-        self.__data.append(row)
-        self.endInsertRows()
+    # def append_row(self, row: typing.List[typing.Any] = None):
+    #     if not row:
+    #         row = [None] * len(self.header_labels)
+    #     self.beginInsertRows(QtCore.QModelIndex(), self.rowCount(), self.rowCount())
+    #     self.__data[self.rowCount()] = dict(zip(self.header_labels, row))
+    #     self.endInsertRows()
 
     def delete_row(self, row: int):
         self.beginRemoveRows(QtCore.QModelIndex(), row, row)
-        self.__data.pop(row)
+        del self.__data[self.__key_list[row]]
         self.endRemoveRows()

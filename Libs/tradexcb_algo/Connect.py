@@ -6,15 +6,18 @@
     :copyright:
     :license: see LICENSE for details.
 """
-from six.moves.urllib.parse import urljoin
-import json
-import logging
-import requests
-import Exception as ex
-from requests.adapters import HTTPAdapter
 import configparser
+import json
 import sys
-log = logging.getLogger(__name__)
+
+import requests
+from requests.adapters import HTTPAdapter
+from six.moves.urllib.parse import urljoin
+
+from Libs.Utils.exception_handler import getFutureLogger
+from . import Exception as ex
+
+log = getFutureLogger(__name__)
 
 
 class XTSCommon:

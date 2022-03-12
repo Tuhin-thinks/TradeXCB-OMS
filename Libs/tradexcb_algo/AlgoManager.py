@@ -12,10 +12,11 @@ class AlgoManager(QtCore.QObject):
         self._monitor_timer = None
         self.manager_dict = multiprocessing.Manager().dict()  # to handle shared data between processes
 
-    def start_algo(self):
+    def start_algo(self, paper_trade: int):
         algo_process = multiprocessing.Process(target=main_strategy.main,
                                                args=(self.manager_dict,))
         algo_process.start()
+        self.manager_dict['paper_trade'] = paper_trade
         self.manager_dict['algo_running'] = True
         self.manager_dict['algo_error'] = None
         self.manager_dict['force_stop'] = False
@@ -28,7 +29,7 @@ class AlgoManager(QtCore.QObject):
     def start_algo_monitor(self):
         self._monitor_timer = QtCore.QTimer()
         self._monitor_timer.timeout.connect(self.algo_monitor)
-        self._monitor_timer.start(1000)
+        self._monitor_timer.start(500)
 
     def algo_monitor(self):
         if not self.manager_dict.get('algo_running'):
@@ -36,4 +37,6 @@ class AlgoManager(QtCore.QObject):
             self._monitor_timer.stop()
             self.manager_dict['algo_error'] = None
         else:
-            self.orderbook_data.emit(self.manager_dict.get('orderbook_data'))
+            orderbook_data = self.manager_dict.get('orderbook_data')
+            if isinstance(orderbook_data, dict):
+                self.orderbook_data.emit(orderbook_data)

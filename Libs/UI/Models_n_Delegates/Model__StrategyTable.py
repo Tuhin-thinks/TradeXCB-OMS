@@ -237,7 +237,7 @@ class StrategyViewModel(QtCore.QAbstractTableModel):
         if role == Qt.DisplayRole:
             if data_ in (None, 'None'):
                 return 0
-            return re.sub(r"\.0$", "", str(data_))
+            return data_
         if role == Qt.TextAlignmentRole:
             return Qt.AlignCenter
         if role == Qt.EditRole:

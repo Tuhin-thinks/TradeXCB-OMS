@@ -1,12 +1,13 @@
+from datetime import datetime
 import os.path
-import pprint
 import threading
+import typing
 import webbrowser
 
 import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from Libs import api_edit_dialog, icons_lib
+from Libs import icons_lib
 from Libs.Concurrency import UI__Runnable, CSV_Loader
 from Libs.Files import handle__SaveOpen, TradingSymbolMapping as SymbolMapping, handle_user_details
 from Libs.Storage import Cloud, manage_local
@@ -17,6 +18,7 @@ from Libs.UI.Utils import widget_handling
 from Libs.UI.custom_style_sheet import CustomStyleSheet
 from Libs.Utils import calculations, config
 from Libs.globals import *
+from Libs.tradexcb_algo.AlgoManager import AlgoManager
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -30,21 +32,21 @@ class ApiHome(QtWidgets.QMainWindow):
 
     def __init__(self, geometry: typing.Union[QtCore.QRect, None] = None):
         super(ApiHome, self).__init__()
-        self.grouped_positions_view = None
-        self.multi_client_view = None
+        self.oms_frame_layout = None
+        self.oms_view: typing.Union[None, OrderManagerTable.OMSTable] = None
+        self.grouped_positions_view: typing.Union[None, 'PNLProfit_Dialog.PNLProfitDialog'] = None
+        self.multi_client_view: typing.Union[None, 'API_Det_TableView.API_Det_TableView'] = None
         self._notif_timer = None
         self.notifications_downloading = False
-        self.strategy_algorithm_object = None
+        self.strategy_algorithm_object: typing.Union[None, AlgoManager] = None
         self.oi_data_refreshing = False
-        self.backtesting_algorithm_object = None
-        self.api_inp_edit_dialog = None
         self.style_refresh_timer = None
         self.strategy_algo_runner_thread = None
         self.opt_update_timer = None
         self.positionView = None
         self.strategy_tables = []
         self.opt_chain_frames = []
-        self.tableView_logs: 'LogTable.LogView' = None
+        self.tableView_logs: typing.Union[None, 'LogTable.LogView'] = None
         self.pause_stylesheet_timer = False
         self.ui = home.Ui_MainWindow()
         self.ui.setupUi(self)
@@ -127,13 +129,13 @@ class ApiHome(QtWidgets.QMainWindow):
             _ = [x.setPalette(self.custom_palette_now) for x in self.palette_sensitive_widgets]
 
         # ------------ add oi table views --------------
+        self.check_data_files()
         self.add_log_view()
         self.add_positions_view()
         self.add_ExcelViews()
         self.add_multi_client_view()
         self.add_oms_view()
         self.refresh_stylesheet()
-        self.check_data_files()
 
         # --------------- [Signals] button clicks -----------------------------
         self.ui.pushButton_clear_logs.clicked.connect(self.clear_future_logs)
@@ -292,7 +294,7 @@ class ApiHome(QtWidgets.QMainWindow):
         self.multi_client_view.update()
 
     def add_client_account(self):
-        self.multi_client_view.append_row()
+        self.multi_client_view.insertRow()
         self.multi_client_view.update()
 
     def load_client_details(self):
@@ -316,37 +318,24 @@ class ApiHome(QtWidgets.QMainWindow):
 
     def stop_trading(self):
         try:
-            self.strategy_algorithm_object.signal_stop_strategy_timer.emit()
+            self.strategy_algorithm_object.stop_algo()
         except Exception:
             pass
         finally:
-            self.stop_trading_thread()
             logger.info("Strategy algorithm Stopped successfully")
         self.ui.pushButton_start_trading.setEnabled(True)
         self.ui.pushButton_stop_trading.setDisabled(True)
 
-    def stop_trading_thread(self):
-        try:
-            self.strategy_algo_runner_thread.wait(10)
-            self.strategy_algo_runner_thread.quit()
-        except Exception as e:
-            pass
-        try:
-            self.strategy_algorithm_object.disconnect()
-        except Exception:
-            pass
-
     def error_stop_trade_algorithm(self, message: str):  # on strategy algorithm stop
         Interact.show_message(self, "Algorithm stopped", message, "warning")
         self.stop_trading()
-        self.ui.pushButton_start_trading.setEnabled(True)
-        self.ui.pushButton_stop_trading.setDisabled(True)
         logger.info("Strategy algorithm Stopped successfully")
 
-    def error_stop_backtest_algo(self, message: str):  # in backtesting algorithm stop
-        Interact.show_message(self, "Algorithm stopped", message, "warning")
-        self.stop_trading_thread()
-        self.stop_trading()
+    def update_orderbook_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):  # todo: complete this function
+        """Updates orderbook data"""
+        # print(data)
+        pass
+        # self.oms_view.update_data(data)  # reset the model data with new data
 
     def start_trading(self):
         """
@@ -366,13 +355,10 @@ class ApiHome(QtWidgets.QMainWindow):
         trading_mode_text = self.ui.comboBox_trading_mode.currentText()
         trading_mode_index = settings.TRADING_NAME_INDEX_MAPPING[trading_mode_text]
         if trading_mode_index in (0, 1):  # Need to run MainManager script
-            # passing parent to overcome 'QThread: Destroyed while thread is still running'
-            self.strategy_algo_runner_thread = QtCore.QThread()
-            self.strategy_algorithm_object = AlgoExecutor(paper_trade=trading_mode_index)
+            self.strategy_algorithm_object = AlgoManager()
             self.strategy_algorithm_object.error_stop.connect(self.error_stop_trade_algorithm)
-            self.strategy_algorithm_object.moveToThread(self.strategy_algo_runner_thread)
-            self.strategy_algo_runner_thread.started.connect(self.strategy_algorithm_object.start_strategy_timer)
-            self.strategy_algo_runner_thread.start()
+            self.strategy_algorithm_object.orderbook_data.connect(self.update_orderbook_data)
+            self.strategy_algorithm_object.start_algo(trading_mode_index)  # pass paper_trade value (0 for live trade)
         else:  # need to run backtesting script
             pass
 
@@ -624,7 +610,8 @@ class ApiHome(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def save_error_logs(self):
         try:
-            path = handle__SaveOpen.save_file(self, "Save Program Logs", '', "CSV (*.csv)")
+            time_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            path = handle__SaveOpen.save_file(self, "Export Program Logs", f'ProgramLogs_{time_string}.txt', "TEXT (*.txt)")
             self.tableView_logs.save_data(path)  # path validity checking done inside this function
         except Exception as e:
             logger.warning(f"Error saving file: {e.__str__()}")

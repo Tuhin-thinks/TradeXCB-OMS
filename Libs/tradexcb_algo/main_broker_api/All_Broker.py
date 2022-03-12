@@ -1,32 +1,34 @@
-from main_broker_api import main_broker
+import datetime
+
+from . import main_broker
 import onetimepass as otp
 import pandas as pd
 import json
 import requests
 import urllib.parse as urlparse
 import sys
-from main_broker_api import angel_helper,iifl_helper
+from . import angel_helper, iifl_helper
 import os
 import time
 import threading
-#Kite API
-from kiteconnect import KiteConnect,KiteTicker
-#IIFL API
-from Connect import XTSConnect
-from MarketDataSocketClient import MDSocket_io
+# Kite API
+from kiteconnect import KiteConnect, KiteTicker
+# IIFL API
+from Libs.tradexcb_algo.Connect import XTSConnect
+from Libs.tradexcb_algo.MarketDataSocketClient import MDSocket_io
 
 # Alice Blue
 from alice_blue import *
 
-#Angel one API
+# Angel one API
 from smartapi import SmartConnect
-
 
 Allcols = main_broker.Allcols
 
+
 class All_Broker(main_broker.Broker):
-    def __init__(self,**kwargs):
-        '''
+    def __init__(self, **kwargs):
+        """
 
         :param kwargs: Example {'Name': 'c',
                                  'Stock Broker Name': '',
@@ -43,7 +45,7 @@ class All_Broker(main_broker.Broker):
                                  'source': nan,
                                  'market_appkey': nan,
                                  'market_secretkey': nan}
-        '''
+        """
 
         super().__init__(**kwargs)
         self.broker = None
@@ -57,7 +59,7 @@ class All_Broker(main_broker.Broker):
         self.Instruments = list()
         self.web_socket = None
 
-    def get_ltp(self,instrument_token):
+    def get_ltp(self, instrument_token):
         return self.latest_ltp[instrument_token]['ltp']
 
     def get_live_ticks(self):
@@ -89,7 +91,7 @@ class All_Broker(main_broker.Broker):
             def on_connect(ws, response):
                 print("I am in On Connect")
 
-                self.web_socket  = ws
+                self.web_socket = ws
                 subs(self.instrument_list)
 
             def subs(instrument_token):
@@ -100,7 +102,8 @@ class All_Broker(main_broker.Broker):
                 self.web_socket.set_mode(self.web_socket.MODE_FULL, instrument_token)
                 return
 
-            kws = KiteTicker(self.all_data_kwargs[Allcols.apikey.value], self.data["access_token"], self.all_data_kwargs[Allcols.username.value])
+            kws = KiteTicker(self.all_data_kwargs[Allcols.apikey.value], self.data["access_token"],
+                             self.all_data_kwargs[Allcols.username.value])
             kws.debug = False
             kws.on_ticks = on_ticks
             kws.on_connect = on_connect
@@ -112,9 +115,13 @@ class All_Broker(main_broker.Broker):
 
             for each_instrument in self.instrument_list:
                 instrument_row = self.instrument_df[self.instrument_df['instrument_token'] == each_instrument]
-                self.instruments_map[each_instrument] = iifl_helper.get_symbol_from_token(instrument_row.iloc[-1]['exchange_token'],instrument_row.iloc[-1]['exchange'])
+                self.instruments_map[each_instrument] = iifl_helper.get_symbol_from_token(
+                    instrument_row.iloc[-1]['exchange_token'], instrument_row.iloc[-1]['exchange'])
                 self.instruments_map[instrument_row.iloc[-1]['exchange_token']] = each_instrument
-                self.Instruments.append({'exchangeSegment':iifl_helper.get_exchange_number(instrument_row.iloc[-1]['exchange']),'exchangeInstrumentID':int(self.instruments_map[each_instrument].iloc[-1]['ExchangeInstrumentID'])})
+                self.Instruments.append(
+                    {'exchangeSegment': iifl_helper.get_exchange_number(instrument_row.iloc[-1]['exchange']),
+                     'exchangeInstrumentID': int(
+                         self.instruments_map[each_instrument].iloc[-1]['ExchangeInstrumentID'])})
 
             def on_connect():
                 """Connect from the socket."""
@@ -122,7 +129,7 @@ class All_Broker(main_broker.Broker):
                 response = self.market_api.send_subscription(self.Instruments, 1501)
                 # response = self.market_api.send_subscription(self.Instruments, 1510)
                 # response = self.market_api.send_subscription(self.Instruments, 1502)
-                print('Sent Subscription request!',response)
+                print('Sent Subscription request!', response)
 
             def on_message(data):
                 print('I received a message!')
@@ -150,7 +157,6 @@ class All_Broker(main_broker.Broker):
                 except:
                     self.logger.info(f"Error in 1501 json full")
 
-
             self.soc.on_connect = on_connect
             self.soc.on_message = on_message
             self.soc.on_message1501_json_full = on_message1501_json_full
@@ -166,7 +172,7 @@ class All_Broker(main_broker.Broker):
             # time.sleep(5)
             return
 
-    def get(self,name):
+    def get(self, name):
         if name == 'username':
             return self.all_data_kwargs[Allcols.username.value]
 
@@ -179,13 +185,13 @@ class All_Broker(main_broker.Broker):
         totp_code = self.all_data_kwargs[Allcols.totp_secret.value]
         security_pin = self.all_data_kwargs[Allcols.pin.value]
         access_token = self.all_data_kwargs[Allcols.access_token.value]
-        host  = self.all_data_kwargs[Allcols.host.value]
+        host = self.all_data_kwargs[Allcols.host.value]
         consumer_key = self.all_data_kwargs[Allcols.consumer_key.value]
         source = self.all_data_kwargs[Allcols.source.value]
         market_appkey = self.all_data_kwargs['market_appkey']
         market_secretkey = self.all_data_kwargs['market_secretkey']
 
-        self.log_this(f"Logging in the API for {username} Broker {self.broker_name}")
+        self.log_this(f"Logging in the API for {username} Broker {self.broker_name}", log_level="info")
 
         if self.broker_name.lower() == 'zerodha':
             try:
@@ -193,14 +199,15 @@ class All_Broker(main_broker.Broker):
                 request_token = ""
                 session = requests.Session()
                 session.headers.update(
-                    {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3'})
+                    {
+                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3'})
                 session.get(login_url)
                 res0 = session.get(login_url)
                 res1 = session.post("https://kite.zerodha.com/api/login",
                                     data={'user_id': username,
                                           'password': password})
                 data = json.loads(res1.text)
-                print("Data",data)
+                print("Data", data)
                 res2 = session.post("https://kite.zerodha.com/api/twofa",
                                     data={'user_id': username,
                                           'request_id': data['data']["request_id"],
@@ -212,7 +219,8 @@ class All_Broker(main_broker.Broker):
                     parsed = urlparse.urlparse(res.history[1].headers['location'])
                     request_token = urlparse.parse_qs(parsed.query)['request_token'][0]
                 except Exception as e:
-                    print(e)
+                    self.log_this(f"Error in getting request token for {username} Broker {self.broker_name}",
+                                  log_level="error")
 
                 session.close()
                 kite = KiteConnect(api_key=apikey)
@@ -225,7 +233,8 @@ class All_Broker(main_broker.Broker):
 
             except:
                 self.broker = None
-                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name} Error : {sys.exc_info()}")
+                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name}"
+                              f" Error : {sys.exc_info()}")
 
 
         elif self.broker_name.lower() == 'iifl':
@@ -234,7 +243,7 @@ class All_Broker(main_broker.Broker):
                 response = self.market_api.marketdata_login()
                 # iifl_helper.download_master_file(self.market_api)
                 # print(self.broker.get_profile())
-                self.broker = XTSConnect(apikey, secretkey, source,host)
+                self.broker = XTSConnect(apikey, secretkey, source, host)
 
                 self.market_token = response['result']['token']
                 print(f"Token : {self.market_token}")
@@ -247,33 +256,36 @@ class All_Broker(main_broker.Broker):
 
             except:
                 self.broker = None
-                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name} Error : {sys.exc_info()}")
-
+                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name}"
+                              f" Error : {sys.exc_info()}")
 
         elif self.broker_name.lower() == 'alice blue':
             try:
-                access_token = AliceBlue.login_and_get_access_token(username=str(int(username)), password=str(password), twoFA=str(int(security_pin)), api_secret=str(secretkey), app_id=str(apikey))
-                self.log_this(f"Access Token : {access_token}")
+                access_token = AliceBlue.login_and_get_access_token(username=str(int(username)), password=str(password),
+                                                                    twoFA=str(int(security_pin)),
+                                                                    api_secret=str(secretkey), app_id=str(apikey))
+                self.log_this(f"Access Token : {access_token}", log_level='info')
                 self.broker = AliceBlue(username=str(int(username)), password=str(password), access_token=access_token)
             except:
                 self.broker = None
-                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name} Error : {sys.exc_info()}")
+                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name}"
+                              f" Error : {sys.exc_info()}")
 
 
         elif self.broker_name.lower() == 'angel':
             try:
                 obj = SmartConnect(api_key=apikey)
-                data=obj.generateSession(username, password)
+                data = obj.generateSession(username, password)
                 self.data = data
                 refreshToken = data['data']['refreshToken']
-                self.refreshtoken = refreshToken # This
+                self.refreshtoken = refreshToken  # This
                 self.broker = obj
             except:
-
                 self.broker = None
-                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name} Error : {sys.exc_info()}")
+                self.log_this(f"Error in logging in for {username} Broker : {self.broker_name}"
+                              f" Error : {sys.exc_info()}")
 
-    def place_order(self,**kwargs):
+    def place_order(self, **kwargs):
         '''
 
         :param kwargs: kwargs = {'variety' :'regular',
@@ -296,23 +308,27 @@ class All_Broker(main_broker.Broker):
         order_id = None
         message = 'success'
         tradingsymbol = kwargs['tradingsymbol']
-        instrument_row = self.instrument_df[(self.instrument_df['tradingsymbol'] == kwargs['tradingsymbol'])&(self.instrument_df['exchange'] == kwargs['exchange']) ]
+        instrument_row = self.instrument_df[(self.instrument_df['tradingsymbol'] == kwargs['tradingsymbol']) & (
+                self.instrument_df['exchange'] == kwargs['exchange'])]
 
         if self.broker_name.lower() == 'zerodha':
             try:
                 order_id = self.broker.place_order(variety=kwargs['variety'],
                                                    exchange=kwargs['exchange'],
                                                    tradingsymbol=kwargs['tradingsymbol'],
-                                                   quantity=kwargs['quantity'],product = kwargs['product'],
+                                                   quantity=kwargs['quantity'], product=kwargs['product'],
                                                    transaction_type=kwargs['transaction_type'],
                                                    order_type=kwargs['order_type'],
-                                                   price = None if 'price' not in kwargs else kwargs['price'],
+                                                   price=None if 'price' not in kwargs else kwargs['price'],
                                                    validity=KiteConnect.VALIDITY_DAY,
-                                                   disclosed_quantity=None if 'disclosed_quantity' not in kwargs else kwargs['disclosed_quantity'],
-                                                   trigger_price=None if 'trigger_price' not in kwargs else kwargs['trigger_price'],
+                                                   disclosed_quantity=None if 'disclosed_quantity' not in kwargs else
+                                                   kwargs['disclosed_quantity'],
+                                                   trigger_price=None if 'trigger_price' not in kwargs else kwargs[
+                                                       'trigger_price'],
                                                    squareoff=None if 'squareoff' not in kwargs else kwargs['squareoff'],
                                                    stoploss=None if 'stoploss' not in kwargs else kwargs['stoploss'],
-                                                   trailing_stoploss=None if 'trailing_stoploss' not in kwargs else kwargs['trailing_stoploss'],
+                                                   trailing_stoploss=None if 'trailing_stoploss' not in kwargs else
+                                                   kwargs['trailing_stoploss'],
                                                    tag=None)
             except:
                 order_id = None
@@ -322,9 +338,8 @@ class All_Broker(main_broker.Broker):
 
 
         elif self.broker_name.lower() == 'iifl':
-            exchange_map = {'NSE':self.broker.EXCHANGE_NSECM,'NFO':self.broker.EXCHANGE_NSEFO}
-            order_map = {'MARKET':'MARKET','LIMIT':'LIMIT','SL-M':"STOPMARKET",'SL':"STOPLIMIT"}
-
+            exchange_map = {'NSE': self.broker.EXCHANGE_NSECM, 'NFO': self.broker.EXCHANGE_NSEFO}
+            order_map = {'MARKET': 'MARKET', 'LIMIT': 'LIMIT', 'SL-M': "STOPMARKET", 'SL': "STOPLIMIT"}
 
             try:
                 response = self.broker.place_order(
@@ -348,24 +363,30 @@ class All_Broker(main_broker.Broker):
 
 
         elif self.broker_name.lower() == 'alice blue':
-            transaction_map = {'BUY':TransactionType.Buy,'SELL':TransactionType.Sell}
-            order_map = {'MARKET': OrderType.Market, 'LIMIT': OrderType.Limit, 'SL-M': OrderType.StopLossMarket, 'SL': OrderType.StopLossLimit}
-            product_map = {'MIS':ProductType.Intraday,'NRML':ProductType.Delivery,'CNC':ProductType.Delivery}
+            transaction_map = {'BUY': TransactionType.Buy, 'SELL': TransactionType.Sell}
+            order_map = {'MARKET': OrderType.Market, 'LIMIT': OrderType.Limit, 'SL-M': OrderType.StopLossMarket,
+                         'SL': OrderType.StopLossLimit}
+            product_map = {'MIS': ProductType.Intraday, 'NRML': ProductType.Delivery, 'CNC': ProductType.Delivery}
             try:
                 instrument = None
-                instrument = self.broker.get_instrument_by_token(kwargs['exchange'], int(instrument_row['exchange_token'].iloc[-1]))
+                instrument = self.broker.get_instrument_by_token(kwargs['exchange'],
+                                                                 int(instrument_row['exchange_token'].iloc[-1]))
 
                 response = self.broker.place_order(transaction_type=transaction_map[kwargs['transaction_type']],
-                                  instrument = instrument,
-                                  quantity=kwargs['quantity'],
-                                  order_type=order_map[kwargs['order_type']],
-                                  product_type=product_map[kwargs['product']],
-                                  price=0.0 if kwargs['price'] is None else float(kwargs['price']),
-                                  trigger_price= None if 'trigger_price' not in kwargs or kwargs['trigger_price'] is None else float(kwargs['trigger_price']),
-                                  stop_loss= None if 'stoploss' not in kwargs or kwargs['stoploss'] is None else kwargs['stoploss'],
-                                  square_off= None if 'squareoff' not in kwargs or kwargs['squareoff'] is None else kwargs['squareoff'],
-                                  trailing_sl=None if 'trailing_stoploss' not in kwargs or kwargs['trailing_stoploss'] is None else kwargs['trailing_stoploss'],
-                                  is_amo=False)
+                                                   instrument=instrument,
+                                                   quantity=kwargs['quantity'],
+                                                   order_type=order_map[kwargs['order_type']],
+                                                   product_type=product_map[kwargs['product']],
+                                                   price=0.0 if kwargs['price'] is None else float(kwargs['price']),
+                                                   trigger_price=None if 'trigger_price' not in kwargs or kwargs[
+                                                       'trigger_price'] is None else float(kwargs['trigger_price']),
+                                                   stop_loss=None if 'stoploss' not in kwargs or kwargs[
+                                                       'stoploss'] is None else kwargs['stoploss'],
+                                                   square_off=None if 'squareoff' not in kwargs or kwargs[
+                                                       'squareoff'] is None else kwargs['squareoff'],
+                                                   trailing_sl=None if 'trailing_stoploss' not in kwargs or kwargs[
+                                                       'trailing_stoploss'] is None else kwargs['trailing_stoploss'],
+                                                   is_amo=False)
                 order_id = response['data']['oms_order_id']
             except:
                 order_id = None
@@ -375,13 +396,14 @@ class All_Broker(main_broker.Broker):
 
 
         elif self.broker_name.lower() == 'angel':
-            product_map = {'MIS':'INTRADAY','NRML':'CARRYFORWARD','CNC':'DELIVERY'}
-            order_map = {'MARKET':'MARKET','LIMIT':'LIMIT','SL':'STOPLOSS_LIMIT','SL-M':'STOPLOSS_MARKET'}
-            variety = 'NORMAL' if kwargs['order_type'] in ['LIMIT','MARKET'] else 'STOPLOSS'
+            product_map = {'MIS': 'INTRADAY', 'NRML': 'CARRYFORWARD', 'CNC': 'DELIVERY'}
+            order_map = {'MARKET': 'MARKET', 'LIMIT': 'LIMIT', 'SL': 'STOPLOSS_LIMIT', 'SL-M': 'STOPLOSS_MARKET'}
+            variety = 'NORMAL' if kwargs['order_type'] in ['LIMIT', 'MARKET'] else 'STOPLOSS'
             try:
                 orderparams = {
                     "variety": variety,
-                    "tradingsymbol": angel_helper.get_symbol_from_token(str(instrument_row['exchange_token'].iloc[-1]),kwargs['exchange']),
+                    "tradingsymbol": angel_helper.get_symbol_from_token(str(instrument_row['exchange_token'].iloc[-1]),
+                                                                        kwargs['exchange']),
                     "symboltoken": str(instrument_row['exchange_token'].iloc[-1]),
                     "transactiontype": kwargs['transaction_type'],
                     "exchange": kwargs['exchange'],
@@ -389,9 +411,12 @@ class All_Broker(main_broker.Broker):
                     "producttype": product_map[kwargs['product']],
                     "duration": kwargs['validity'],
                     "price": "0" if kwargs['price'] is None else str(kwargs['price']),
-                    "squareoff": "0" if 'squareoff' not in kwargs or kwargs['squareoff'] is None else str(kwargs['squareoff']),
-                    "stoploss": "0" if 'stoploss' not in kwargs or kwargs['stoploss'] is None else str(kwargs['stoploss']),
-                    "triggerprice" : "0" if 'trigger_price' not in kwargs or kwargs['trigger_price'] is None else str(kwargs['trigger_price']),
+                    "squareoff": "0" if 'squareoff' not in kwargs or kwargs['squareoff'] is None else str(
+                        kwargs['squareoff']),
+                    "stoploss": "0" if 'stoploss' not in kwargs or kwargs['stoploss'] is None else str(
+                        kwargs['stoploss']),
+                    "triggerprice": "0" if 'trigger_price' not in kwargs or kwargs['trigger_price'] is None else str(
+                        kwargs['trigger_price']),
                     "quantity": str(kwargs['quantity']
 
                                     )
@@ -404,9 +429,9 @@ class All_Broker(main_broker.Broker):
                 self.log_this(f"Error in Order Placement")
                 self.log_this(f"{str(sys.exc_info())}")
 
-        return order_id,message
+        return order_id, message
 
-    def cancel_order(self,order_id):
+    def cancel_order(self, order_id):
         '''
 
         :param kwargs:
@@ -420,7 +445,7 @@ class All_Broker(main_broker.Broker):
             try:
                 orders_history = self.get_order_book()
                 order_row = orders_history[orders_history['order_id'].astype(str) == str(order_id)]
-                order_id = self.broker.cancel_order(variety=order_row.iloc[-1]['variety'],order_id=order_id)
+                order_id = self.broker.cancel_order(variety=order_row.iloc[-1]['variety'], order_id=order_id)
             except:
                 order_id = None
                 message = str(sys.exc_info())
@@ -431,7 +456,8 @@ class All_Broker(main_broker.Broker):
             try:
                 order_history = pd.DataFrame(self.broker.get_order_book()['result'])
                 order_row = order_history[order_history['AppOrderID'].astype(str) == str(order_id)]
-                self.broker.cancel_order(appOrderID=order_id,orderUniqueIdentifier= order_row.iloc[-1]['OrderUniqueIdentifier'])
+                self.broker.cancel_order(appOrderID=order_id,
+                                         orderUniqueIdentifier=order_row.iloc[-1]['OrderUniqueIdentifier'])
             except:
                 order_id = None
                 message = str(sys.exc_info())
@@ -456,7 +482,7 @@ class All_Broker(main_broker.Broker):
                 orders_history = self.get_order_book()
                 order_row = orders_history[orders_history['orderid'] == str(order_id)]
                 variety = order_row.iloc[-1]['variety']
-                order_id = self.broker.cancelOrder(variety=variety,order_id=order_id)
+                order_id = self.broker.cancelOrder(variety=variety, order_id=order_id)
             except:
                 order_id = None
                 message = str(sys.exc_info())
@@ -465,7 +491,7 @@ class All_Broker(main_broker.Broker):
 
         return message
 
-    def get_order_status(self,order_id):
+    def get_order_status(self, order_id):
         '''
 
         :return:
@@ -492,12 +518,13 @@ class All_Broker(main_broker.Broker):
             try:
 
                 order_history = pd.DataFrame(self.broker.get_order_book()['result'])
-                order_status = order_history[order_history['AppOrderID'].astype(str) == str(order_id)]['OrderStatus'].iloc[-1]
+                order_status = \
+                    order_history[order_history['AppOrderID'].astype(str) == str(order_id)]['OrderStatus'].iloc[-1]
                 if order_status.lower() == 'filled':
                     order_status = 'complete'
                 if order_status.lower() == 'new':
                     order_status = 'pending'
-                if order_status.lower() in ['cancelled','rejected','complete','pending']:
+                if order_status.lower() in ['cancelled', 'rejected', 'complete', 'pending']:
                     order_status = order_status.upper()
 
 
@@ -512,10 +539,11 @@ class All_Broker(main_broker.Broker):
             try:
                 orders = self.broker.get_order_history()
                 order_history = pd.DataFrame(orders['data']['pending_orders'] + orders['data']['completed_orders'])
-                order_status = order_history[order_history['oms_order_id'].astype(str) == str(order_id)]['order_status'].iloc[-1]
+                order_status = \
+                    order_history[order_history['oms_order_id'].astype(str) == str(order_id)]['order_status'].iloc[-1]
                 if order_status == 'open':
                     order_status = 'pending'
-                if order_status in ['cancelled','rejected','complete','pending']:
+                if order_status in ['cancelled', 'rejected', 'complete', 'pending']:
                     order_status = order_status.upper()
             except:
 
@@ -529,7 +557,7 @@ class All_Broker(main_broker.Broker):
                 order_status = order_history[order_history['orderid'] == order_id]['status'].iloc[-1]
                 if order_status == 'open':
                     order_status = 'pending'
-                if order_status in ['cancelled','rejected','complete','pending']:
+                if order_status in ['cancelled', 'rejected', 'complete', 'pending']:
                     order_status = order_status.upper()
             except:
 
@@ -537,7 +565,7 @@ class All_Broker(main_broker.Broker):
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
 
-        return order_status,message
+        return order_status, message
 
     def get_order_book(self):
         order_history = pd.DataFrame()
@@ -549,7 +577,6 @@ class All_Broker(main_broker.Broker):
                 return order_history
 
             except:
-
                 message = str(sys.exc_info())
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
@@ -562,7 +589,6 @@ class All_Broker(main_broker.Broker):
 
 
             except:
-                message = str(sys.exc_info())
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
 
@@ -573,8 +599,6 @@ class All_Broker(main_broker.Broker):
                 order_history = pd.DataFrame(orders['data']['pending_orders'] + orders['data']['completed_orders'])
                 return order_history
             except:
-
-                message = str(sys.exc_info())
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
 
@@ -590,7 +614,8 @@ class All_Broker(main_broker.Broker):
 
         return order_history
 
-    def get_data(self, instrument_token,timeframe,timeframesuffix,from_dt, to_dt):
+    def get_data(self, instrument_token, timeframe: str, timeframesuffix: str, from_dt: datetime.datetime,
+                 to_dt: datetime.datetime):
         '''
 
         :param instrument_name:
@@ -601,24 +626,25 @@ class All_Broker(main_broker.Broker):
         message = None
         error_message = 'Error in getting data'
 
-        instrument_row = self.instrument_df[self.instrument_df['instrument_token'] == instrument_token]
+        instrument_row = self.instrument_df[self.instrument_df['instrument_token'] == int(instrument_token)]
 
         if self.broker_name.lower() == 'zerodha':
             try:
-                if timeframe == 1 :
+                if timeframe == '1':
                     interval = 'minute'
                 else:
-                    interval = str(timeframe)+str(timeframesuffix)
-                df = self.broker.historical_data(instrument_token=int(instrument_token), interval=interval, from_date=from_dt, to_date=to_dt)
+                    interval = str(timeframe) + str(timeframesuffix)
+                df = self.broker.historical_data(instrument_token=int(instrument_token), interval=interval,
+                                                 from_date=from_dt, to_date=to_dt)
                 # print(df)
                 for x in range(0, len(df)):
                     df[x]['date'] = df[x]['date'].replace(tzinfo=None)
                 df = pd.DataFrame(df)
+                df.set_index('date', inplace=True)
                 message = 'success'
             except:
                 message = str(sys.exc_info())
                 self.log_this(error_message)
-                self.log_this(f"{str(sys.exc_info())}")
 
 
 
@@ -630,18 +656,22 @@ class All_Broker(main_broker.Broker):
             to_dt = int(to_dt.timestamp())
             from_dt = int(from_dt.timestamp())
             try:
-                res = self.broker.get_ohlc(exchangeSegment=int(iifl_helper.get_exchange_number(instrument_row.iloc[-1]['exchange'])),exchangeInstrumentID=int(instrument_row.iloc[-1]['exchange_token']),startTime=from_dt,endTime=to_dt,compressionValue=int(timeframe)*60)
+                res = self.broker.get_ohlc(
+                    exchangeSegment=int(iifl_helper.get_exchange_number(instrument_row.iloc[-1]['exchange'])),
+                    exchangeInstrumentID=int(instrument_row.iloc[-1]['exchange_token']), startTime=from_dt,
+                    endTime=to_dt, compressionValue=int(timeframe) * 60)
                 res = res['result']['dataReponse']
                 res = res.split(',')
                 final_res = []
                 for each_elem in res:
                     final_res.append(each_elem.split('|'))
 
-                df = pd.DataFrame(final_res, columns=['time', 'open', 'high', 'low', 'close', 'volume', 'open_interest', 'None'])
+                df = pd.DataFrame(final_res,
+                                  columns=['time', 'open', 'high', 'low', 'close', 'volume', 'open_interest', 'None'])
                 df = df[['time', 'open', 'high', 'low', 'close', 'volume', 'open_interest']]
                 df['time'] = pd.to_datetime(df['time'], unit='s')
                 df['time'] = df['time'].apply(lambda x: x.replace(second=0))
-                df['date'] = df['time'] + pd.Timedelta(minutes=int(int(timeframe)*60 / 60))
+                df['date'] = df['time'] + pd.Timedelta(minutes=int(int(timeframe) * 60 / 60))
                 df['open'] = df['open'].astype(float)
                 df['high'] = df['high'].astype(float)
                 df['low'] = df['low'].astype(float)
@@ -654,17 +684,18 @@ class All_Broker(main_broker.Broker):
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
 
+        return df, message
 
-
-        return df,message
-
-    def log_this(self,message):
-        print(message)
+    def log_this(self, log_message, log_level='error'):
         try:
-            self.logger.info(f"Username : {self.get(name='username')} Broker: {self.broker_name} {str(message)}")
-        except:
-            self.logger.info(f"Error in logging a message")
-
+            if log_level == 'info':
+                self.logger.info(log_message)
+            else:
+                self.logger.critical(
+                    f"Username : {self.get(name='username')} Broker: {self.broker_name} {str(log_message)}",
+                    exc_info=True)
+        except Exception as e:
+            self.logger.critical(f"Error in logging a message {e.__str__()}", exc_info=True)
 
 
 if __name__ == '__main__':
@@ -674,42 +705,43 @@ if __name__ == '__main__':
     df_dict = df.to_dict('index')
     print(df)
     import time
+
     # time.sleep(5)
     all_brokers = dict()
     all_orders = dict()
-    for key,value in df_dict.items():
+    for key, value in df_dict.items():
         print(value)
         all_brokers[key] = All_Broker(**value)
         time.sleep(1)
 
-
     for each_broker in all_brokers:
         broker = all_brokers[each_broker]
 
-        kwargs = {'variety' :'regular',
-            'exchange' : 'NFO',
-            'tradingsymbol' : 'NIFTY2230317500CE',
-            'quantity':50,
-             'product' : "MIS",
-            'transaction_type' : 'BUY',
-            'order_type' :'MARKET',
-            'price': None,
-            'validity': 'DAY',
-            'disclosed_quantity' : None ,
-            'trigger_price' :None ,
-            'squareoff' : None ,
-            'stoploss' : None ,
-            'trailing_stoploss' : None,
-            'tag' : None }
+        kwargs = {'variety': 'regular',
+                  'exchange': 'NFO',
+                  'tradingsymbol': 'NIFTY2230317500CE',
+                  'quantity': 50,
+                  'product': "MIS",
+                  'transaction_type': 'BUY',
+                  'order_type': 'MARKET',
+                  'price': None,
+                  'validity': 'DAY',
+                  'disclosed_quantity': None,
+                  'trigger_price': None,
+                  'squareoff': None,
+                  'stoploss': None,
+                  'trailing_stoploss': None,
+                  'tag': None}
 
-        order_id,message = broker.place_order(**kwargs)
-        print(order_id,message)
+        order_id, message = broker.place_order(**kwargs)
+        print(order_id, message)
         all_orders[each_broker] = order_id
-        kwargs1 = {'order_id':order_id}
-        order_status,message = broker.get_order_status(order_id = order_id)
+        kwargs1 = {'order_id': order_id}
+        order_status, message = broker.get_order_status(order_id=order_id)
         # broker.cancel_order(order_id)
-        print(f"{broker.broker_name}{kwargs['transaction_type']} , {kwargs['order_type']} , {order_id} , Status : {order_status}")
-                    # time.sleep(3)
+        print(
+            f"{broker.broker_name}{kwargs['transaction_type']} , {kwargs['order_type']} , {order_id} , Status : {order_status}")
+        # time.sleep(3)
 
     time.sleep(5)
     for each_broker in all_brokers:
@@ -737,6 +769,8 @@ if __name__ == '__main__':
         all_orders[each_broker] = order_id
         kwargs1 = {'order_id': order_id}
         order_status, message = broker.get_order_status(order_id=order_id)
-        broker.cancel_order(order_id)#TODO You can just send the Order ID for order cancellation and order will getcancelled
-        print(f"{broker.broker_name}{kwargs['transaction_type']} , {kwargs['order_type']} , {order_id} , Status : {order_status}")
+        broker.cancel_order(
+            order_id)  # TODO You can just send the Order ID for order cancellation and order will getcancelled
+        print(
+            f"{broker.broker_name}{kwargs['transaction_type']} , {kwargs['order_type']} , {order_id} , Status : {order_status}")
     print('hello')

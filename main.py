@@ -74,8 +74,10 @@ class LoginWindow(QMainWindow):
         add_icons()
 
         def change_user_window(index):
-            self.setWindowTitle(f"User {'Login' if index == 0 else 'Registration'} {settings.APP_NAME} {settings.App_VERSION} {settings.EXTENSION}")
+            self.setWindowTitle(
+                f"User {'Login' if index == 0 else 'Registration'} {settings.APP_NAME} {settings.App_VERSION} {settings.EXTENSION}")
             self.ui.stackedWidget.setCurrentIndex(index)
+
         change_user_window(0)  # default window is login window
 
         self.ui.pushButton_signin.clicked.connect(self.login)
@@ -575,12 +577,19 @@ class LoginWindow(QMainWindow):
 def run_app():
     app = QApplication(sys.argv)
     app.setStyle("fusion")
-    # w = LoginWindow()
-    w = ApiHome()
+    w = LoginWindow()
+    # w = ApiHome()
     # w = PNLProfit_Dialog.PNLProfit()
     w.show()
     app.exec_()
 
 
+def test():
+    from Libs.Files import handle_user_details
+    data = handle_user_details.read_user_api_details(None)
+    print(data)
+
+
 if __name__ == '__main__':
     run_app()
+    # test()

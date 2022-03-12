@@ -132,6 +132,6 @@ class Position_CSVModifyHandler(QtCore.QObject):
                 self.file_changed.emit((positions_df,))
                 self.last_update_time = os.stat(self.watch_loc).st_mtime_ns
             except Exception as e:
-                logger.warning(f"Error reading positions data: {e.__str__()}")
+                pass
         except (FileNotFoundError, FileExistsError):
-            logger.critical(f"{self.watch_loc} missing replace it for proper functioning.")
+            pass
