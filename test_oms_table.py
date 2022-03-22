@@ -1,21 +1,9 @@
-import random
 import sys
-import typing
 
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5 import QtWidgets, QtGui
 
 from Libs.UI.CustomWidgets import OrderManagerTable
-
-
-def algo(manager_dict: typing.Dict):
-    while manager_dict["run"]:
-        user_df_dict = manager_dict["user_df_dict"]
-        for row_key, user_row in user_df_dict.items():
-            user_name = user_row['user_name']
-            broker = user_row['broker']
-            if random.randint(1, 10) == 5:
-                manager_dict["user_df_dict"][row_key]["Status"] = "Order Placed"
+from Libs.tradexcb_algo.AlgoManager import AlgoManager
 
 
 class Window(QtWidgets.QMainWindow):
@@ -25,15 +13,39 @@ class Window(QtWidgets.QMainWindow):
         self.setGeometry(50, 50, 500, 500)
         self.setWindowIcon(QtGui.QIcon("icon.png"))
 
+        self.central_widget = QtWidgets.QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.central_layout = QtWidgets.QVBoxLayout(self.central_widget)
+
         self.table = OrderManagerTable.OMSTable()
-        self.setCentralWidget(self.table)
+        self.central_layout.addWidget(self.table)
 
-        # shortcuts for table management
-        self.insert_row_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+I"), self)
-        self.insert_row_shortcut.activated.connect(self.table.append_row)
+        self.button_frame = QtWidgets.QFrame()
+        self.central_layout.addWidget(self.button_frame)
+        self.button_frame_layout = QtWidgets.QHBoxLayout()
+        self.button_frame.setLayout(self.button_frame_layout)
+        self.button_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.button_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.button_frame.setLineWidth(1)
+        self.button_frame.setMidLineWidth(0)
+        self.button_frame.setObjectName("button_frame")
 
-        self.delete_row_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+D"), self)
-        self.delete_row_shortcut.activated.connect(self.table.delete_row)
+        self.start_algo_button = QtWidgets.QPushButton("Start Algo")
+        self.start_algo_button.clicked.connect(self.start_algo)
+        self.button_frame_layout.addWidget(self.start_algo_button)
+
+    def start_algo(self):
+        self.strategy_algorithm_object = AlgoManager()
+        self.table.set_cancel_order_queue(self.strategy_algorithm_object.get_cancel_order_queue())
+        self.strategy_algorithm_object.error_stop.connect(self.error_stop_trade_algorithm)
+        self.strategy_algorithm_object.orderbook_data.connect(self.update_orderbook_data)
+        self.strategy_algorithm_object.start_algo(0)  # pass paper_trade value (0 for live trade)
+
+    def error_stop_trade_algorithm(self, error_message):
+        print(error_message)
+
+    def update_orderbook_data(self, orderbook_data):
+        self.table.update_data(orderbook_data)
 
 
 if __name__ == '__main__':

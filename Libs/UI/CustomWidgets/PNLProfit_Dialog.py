@@ -76,7 +76,7 @@ class PNLProfitDialog(QtWidgets.QDialog):
             QtCore.QTimer.singleShot(100, self.close)
 
     def filter_by_user(self, user_id):
-        self.tableView.apply_filter(by="user_id", value=int(user_id))
+        self.tableView.apply_filter(by="user_id", value=user_id)
         profit_amt = self.tableView.calculate_profit()
         buy_quantity, sell_quantity = self.tableView.calculate_quantity()
         self.QLabel_mapping['User']['value_label'].setText(f"{user_id}")

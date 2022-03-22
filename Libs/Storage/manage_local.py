@@ -6,7 +6,7 @@ import typing
 from sqlite3 import Error
 from typing import Tuple, Dict
 
-from sqlalchemy import create_engine, Table, String, Column, MetaData, func, select
+from sqlalchemy import create_engine, Table, String, MetaData, func, select, Integer, Column
 from sqlalchemy.dialects.sqlite import Insert
 from sqlalchemy.engine.mock import MockConnection
 from sqlalchemy.exc import IntegrityError
@@ -108,8 +108,10 @@ def create_tables():
     conn.execute(t_create_query)
 
     table_api_details = Table("table_api_details", meta,
+                              Column("row_id", Integer, primary_key=True, nullable=False, unique=True),
                               Column("field_name", String(), nullable=False, unique=True),
                               Column("value", String(), nullable=False),
+                              sqlite_autoincrement=True,
                               extend_existing=True
                               )
     t_create_query = CreateTable(table_api_details, if_not_exists=True)
@@ -165,7 +167,7 @@ def get_all_api_uids():
     if not conn:
         return []
     cursor = conn.cursor()
-    cursor.execute("SELECT field_name FROM table_api_details")
+    cursor.execute("SELECT field_name FROM table_api_details order by row_id;")
     rows = cursor.fetchall()
     return [row[0] for row in rows]
 

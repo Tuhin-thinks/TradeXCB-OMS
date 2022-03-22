@@ -73,5 +73,5 @@ API_DETAILS_COLUMNS = ['Name', 'Stock Broker Name', 'apiKey', 'apiSecret', 'acco
                        'securityPin', 'totp_secret', 'No of Lots', 'consumerKey', 'accessToken', 'host', 'source',
                        'market_appkey', 'market_secretkey']
 
-OMS_TABLE_COLUMNS = ["Instrument", "Entry_Time", "Transaction_Type", "Order_Type", "Product_Type", "Entry_Price",
-                     "Status", "Stoploss", "Target", "MODIFY", "CLOSE_Position"]
+OMS_TABLE_COLUMNS = ["Instrument", "Entry Price", "Entry Time", "Exit Price", "Exit Time", "Order Type", "Quantity",
+                     "Product Type", "Stoploss", "Target", "Order Status", "instrument_df_key", "Close Position?"]

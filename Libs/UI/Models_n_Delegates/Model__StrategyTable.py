@@ -11,11 +11,6 @@ from Libs.globals import *
 logger = exception_handler.getFutureLogger(__name__)
 
 
-class Communicate(QtCore.QObject):
-    data_changed = QtCore.pyqtSignal(int, object)
-    update_expiry_date = QtCore.pyqtSignal(int, object)
-
-
 class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
 
     def __init__(self, owner, choices, header_labels: typing.List, col_index: int, extra_choices=None,
@@ -30,7 +25,6 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
         self.has_extra_choices = False
         self.humanized_str_items = []
         self.strike_options = []
-        self.c = Communicate()
         if self.header_labels[self.col_index] in ("buy_ltp", "sell_ltp", "buy_flag", "sell_flag", "exit_criteria"):
             self.to_humanize = True
             self.humanized_str_items = [humanize_string(x) for x in self.items]

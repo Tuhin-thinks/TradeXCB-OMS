@@ -1,4 +1,5 @@
 import os.path
+import pprint
 import sys
 from functools import partial
 
@@ -579,15 +580,14 @@ def run_app():
     app.setStyle("fusion")
     w = LoginWindow()
     # w = ApiHome()
-    # w = PNLProfit_Dialog.PNLProfit()
     w.show()
     app.exec_()
 
 
 def test():
     from Libs.Files import handle_user_details
-    data = handle_user_details.read_user_api_details(None)
-    print(data)
+    data = handle_user_details.read_user_api_details()  # for testing
+    pprint.PrettyPrinter().pprint(data)
 
 
 if __name__ == '__main__':

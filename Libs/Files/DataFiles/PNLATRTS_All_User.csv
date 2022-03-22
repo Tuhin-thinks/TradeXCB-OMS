@@ -1,1 +1,3 @@
 ,tradingsymbol,exchange,quantity,timeframe,multiplier,entry_price,entry_time,exit_price,exit_time,target_price,sl_price,Row_Type,profit,ltp,Trend,user_id
+0,NIFTY2231717500CE,NFO,50,1,-1,0.05,2022-03-17 15:21:02.923736,,,-19.9,50.0,T,-0.0,0.05,SELL,NY8010
+1,NIFTY2231716500PE,NFO,50,1,-1,0.05,2022-03-17 15:21:03.883655,,,-19.9,50.0,T,-0.0,0.05,SELL,NY8010

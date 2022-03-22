@@ -1,3 +1,4 @@
+import typing
 import datetime
 
 from . import main_broker
@@ -14,8 +15,10 @@ import threading
 # Kite API
 from kiteconnect import KiteConnect, KiteTicker
 # IIFL API
-from Libs.tradexcb_algo.Connect import XTSConnect
-from Libs.tradexcb_algo.MarketDataSocketClient import MDSocket_io
+# from Libs.tradexcb_algo.Connect import XTSConnect
+# from Libs.tradexcb_algo.MarketDataSocketClient import MDSocket_io
+from ..Connect import XTSConnect
+from ..MarketDataSocketClient import MDSocket_io
 
 # Alice Blue
 from alice_blue import *
@@ -59,8 +62,9 @@ class All_Broker(main_broker.Broker):
         self.Instruments = list()
         self.web_socket = None
 
-    def get_ltp(self, instrument_token):
-        return self.latest_ltp[instrument_token]['ltp']
+    def get_ltp(self, instrument_string_list: list) -> typing.Dict[str, float]:
+        if self.broker_name.lower() == "zerodha":
+            return self.broker.ltp(instrument_string_list)
 
     def get_live_ticks(self):
 
@@ -224,7 +228,7 @@ class All_Broker(main_broker.Broker):
 
                 session.close()
                 kite = KiteConnect(api_key=apikey)
-                print(request_token)
+                print("request token:", request_token)
                 data = kite.generate_session(request_token, api_secret=secretkey)
                 self.data = data
                 app = KiteConnect(apikey)
@@ -446,6 +450,7 @@ class All_Broker(main_broker.Broker):
                 orders_history = self.get_order_book()
                 order_row = orders_history[orders_history['order_id'].astype(str) == str(order_id)]
                 order_id = self.broker.cancel_order(variety=order_row.iloc[-1]['variety'], order_id=order_id)
+                print(f"Zerodha Broker : {order_id} Cancelled")
             except:
                 order_id = None
                 message = str(sys.exc_info())
@@ -591,7 +596,6 @@ class All_Broker(main_broker.Broker):
             except:
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
-
 
         elif self.broker_name.lower() == 'alice blue':
             try:

@@ -7,10 +7,10 @@ from Libs.Utils import settings
 f_future_logger = os.path.join(settings.LOG_FILE_DIR, "FutureLogs.log")
 f_trash_logger = os.path.join(settings.LOG_FILE_DIR, "DevTrash.log")
 f_kitedata_logger = os.path.join(settings.LOG_FILE_DIR, "KiteData.log")
-f_timeBased_logger = os.path.join(settings.LOG_FILE_DIR, "iDeltaAlgo.log")
+f_algo_logger = os.path.join(settings.LOG_FILE_DIR, "Algo.log")
 if not os.path.exists(settings.LOG_FILE_DIR):
     os.mkdir(settings.LOG_FILE_DIR)
-    for file in (f_future_logger, f_kitedata_logger, f_timeBased_logger, f_trash_logger):
+    for file in (f_future_logger, f_kitedata_logger, f_algo_logger, f_trash_logger):
         with open(file, 'w') as writer:
             writer.write("")
 
@@ -48,12 +48,12 @@ def getFutureLogger(logger_name):
     return logger
 
 
-def getIDeltaLogger(logger_name):
+def getAlgoLogger(logger_name):
     _format = '%(asctime)s *** %(levelname)s *** %(message)s *** %(source)s'
     formatter = logging.Formatter(_format, datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger(logger_name)
     logger.setLevel(settings.LOGGING_LEVEL)
-    fh = logging.FileHandler(f_future_logger)
+    fh = logging.FileHandler(f_algo_logger)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     logger = logging.LoggerAdapter(logger, {"source": logger_name})
@@ -108,7 +108,7 @@ def deleteLogs():
     logs = []
     log_finder_re = re.compile(settings.LOG_MATCHER_REGEX, re.DOTALL)
     try:
-        with open(f_timeBased_logger, "r") as log_reader:
+        with open(f_algo_logger, "r") as log_reader:
             for line in log_reader:
                 log_data = line.strip()
                 try:
@@ -119,7 +119,7 @@ def deleteLogs():
     except FileNotFoundError:
         pass
 
-    with open(f_timeBased_logger, "w") as log_writer:
+    with open(f_algo_logger, "w") as log_writer:
         write_error_logs = False
         for log_tuple in logs:
             try:

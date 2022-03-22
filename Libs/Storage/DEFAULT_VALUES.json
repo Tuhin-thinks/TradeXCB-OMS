@@ -137,11 +137,11 @@
       ]
    },
    "vwap_signal": {
-      "default_value": "NEW",
+      "default_value": "new",
       "dropdown": true,
       "dropdown_values": [
-         "NEW",
-         "EXISTING"
+         "new",
+         "existing"
       ]
    },
    "ATRTS": {
@@ -161,11 +161,11 @@
       "dropdown": false
    },
    "atrts_signal": {
-      "default_value": "NEW",
+      "default_value": "new",
       "dropdown": true,
       "dropdown_values": [
-         "NEW",
-         "EXISTING"
+         "new",
+         "existing"
       ]
    },
    "moving_average_period": {
@@ -181,11 +181,11 @@
       ]
    },
    "moving_average_signal": {
-      "default_value": "NEW",
+      "default_value": "new",
       "dropdown": true,
       "dropdown_values": [
-         "NEW",
-         "EXISTING"
+         "new",
+         "existing"
       ]
    }
 }

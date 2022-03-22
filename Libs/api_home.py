@@ -333,9 +333,8 @@ class ApiHome(QtWidgets.QMainWindow):
 
     def update_orderbook_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):  # todo: complete this function
         """Updates orderbook data"""
-        # print(data)
-        pass
-        # self.oms_view.update_data(data)  # reset the model data with new data
+        self.oms_view.update_data(data)  # reset the model data with new data
+        self.oms_view.update()  # update the view
 
     def start_trading(self):
         """
@@ -356,6 +355,7 @@ class ApiHome(QtWidgets.QMainWindow):
         trading_mode_index = settings.TRADING_NAME_INDEX_MAPPING[trading_mode_text]
         if trading_mode_index in (0, 1):  # Need to run MainManager script
             self.strategy_algorithm_object = AlgoManager()
+            self.oms_view.set_cancel_order_queue(self.strategy_algorithm_object.get_cancel_order_queue())
             self.strategy_algorithm_object.error_stop.connect(self.error_stop_trade_algorithm)
             self.strategy_algorithm_object.orderbook_data.connect(self.update_orderbook_data)
             self.strategy_algorithm_object.start_algo(trading_mode_index)  # pass paper_trade value (0 for live trade)
@@ -510,7 +510,8 @@ class ApiHome(QtWidgets.QMainWindow):
             self.pause_stylesheet_timer = True
 
     def hide_trade_frame(self, show_=False):
-        """Hide frame containing following buttons:
+        """
+        Hide frame containing following buttons:
             1. verify API Login
             2-3. Start/Stop trading
             4. Trading Mode

@@ -1,36 +1,14 @@
-2022-03-12 15:21:48 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
-2022-03-12 15:21:48 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-12 15:21:48 *** INFO *** Updating OI data *** Libs.api_home
-2022-03-12 15:21:48 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-12 15:21:48 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-12 15:22:14 *** INFO *** Recalibrating update timer to 15 minutes. *** Libs.api_home
-2022-03-12 15:22:14 *** INFO *** Update timer recalibrated to 15 minutes. *** Libs.api_home
-2022-03-12 15:22:21 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-12 15:22:21 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-12 15:23:58 *** INFO *** Instruments File updated... *** algo.config
-2022-03-12 15:24:06 *** INFO *** Exit from API Home *** Libs.api_home
-2022-03-12 15:25:34 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
-2022-03-12 15:25:34 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-12 15:25:34 *** INFO *** Updating OI data *** Libs.api_home
-2022-03-12 15:25:34 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-12 15:25:34 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-12 15:26:35 *** INFO *** Exit from API Home *** Libs.api_home
-2022-03-12 18:08:09 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
-2022-03-12 18:08:09 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-12 18:08:09 *** INFO *** Updating OI data *** Libs.api_home
-2022-03-12 18:08:09 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-12 18:08:09 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-12 18:08:53 *** INFO *** Instruments File updated... *** algo.config
-2022-03-12 18:09:06 *** INFO *** Exit from API Home *** Libs.api_home
-2022-03-12 18:17:52 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
-2022-03-12 18:17:52 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-12 18:17:52 *** INFO *** Updating OI data *** Libs.api_home
-2022-03-12 18:17:52 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-12 18:17:53 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-12 18:20:09 *** INFO *** Exit from API Home *** Libs.api_home
-2022-03-12 18:20:18 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
-2022-03-12 18:20:18 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-12 18:20:18 *** INFO *** Updating OI data *** Libs.api_home
-2022-03-12 18:20:18 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-12 18:20:18 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-12 18:21:18 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-22 18:58:09 *** DEBUG *** updating login time *** __main__
+2022-03-22 18:58:09 *** DEBUG *** update thread started... *** __main__
+2022-03-22 18:58:10 *** DEBUG *** control back to main thread... *** __main__
+2022-03-22 18:58:10 *** DEBUG *** opening application window *** __main__
+2022-03-22 18:58:10 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-22 18:58:10 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-22 18:58:10 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-22 18:58:10 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-22 18:58:10 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-22 18:58:10 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-22 18:58:11 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-22 18:59:03 *** DEBUG *** New option added for instrument *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-22 18:59:03 *** DEBUG *** New option added for instrument *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-22 18:59:34 *** INFO *** Exit from API Home *** Libs.api_home

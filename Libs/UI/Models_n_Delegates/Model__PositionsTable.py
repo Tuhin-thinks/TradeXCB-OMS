@@ -12,7 +12,8 @@ class PositionsModel(QtCore.QAbstractTableModel):
     def __init__(self, header_labels: typing.List, data=None):
         super(PositionsModel, self).__init__()
         self._data = None
-        data = pd.DataFrame(columns=app_data.POSITIONS_COLUMNS) if data is None else data
+        if data is None:
+            data = pd.DataFrame(columns=app_data.POSITIONS_COLUMNS)
         self.populate(data)
         self.header_labels = header_labels
 

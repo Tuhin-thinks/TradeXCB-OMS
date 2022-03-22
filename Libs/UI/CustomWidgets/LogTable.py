@@ -74,10 +74,9 @@ class LogView(QtWidgets.QTableView):
 
     def start_check(self):
         """start checking FutureLog file for modification"""
-        self.handler = FS__EventHandLer.FS_LogModifyHandler(self.watch_loc)
-        # self.file_observer.schedule(handler, watch_loc, recursive=True)
+        log_files_list = [exception_handler.f_future_logger, exception_handler.f_algo_logger]
+        self.handler = FS__EventHandLer.FS_LogModifyHandler(log_files_list)
         self.handler.file_changed.connect(self.insert_data)
-        # self.file_observer.start()
 
     def clear(self):
         """clear all data from model"""

@@ -7,7 +7,7 @@ APP_NAME = "TradeXCB"
 EXTENSION = "-BETA"
 App_VERSION = "0.1.0"
 SITE_LINK = "https://www.trendmyfriend.co.in"
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 adjust_minutes = 2.5  # adjustments on time-frame check delay (check interval = 2.5 minutes less than time-frame)
 LOG_FILE_DIR = os.path.realpath(os.path.join("Libs", "Logs"))
 LOG_EXPIRY_DURATION = 1  # in days

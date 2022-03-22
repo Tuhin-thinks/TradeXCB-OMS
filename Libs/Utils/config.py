@@ -7,7 +7,7 @@ import requests
 
 from Libs.globals import exception_handler, settings
 
-logger = exception_handler.getIDeltaLogger("algo.config")
+logger = exception_handler.getAlgoLogger("algo.config")
 instruments_file_loc = os.path.join(settings.DATA_FILES['INSTRUMENTS_CSV'])
 
 

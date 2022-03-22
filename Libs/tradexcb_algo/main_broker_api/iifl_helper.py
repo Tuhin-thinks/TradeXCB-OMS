@@ -21,6 +21,7 @@ def download_master_file(xt):
                                      ' LotSize', 'Multiplier', 'UnderlyingInstrumentId', 'UnderlyingIndexName',
                                      'ContractExpiration', 'StrikePrice', 'OptionType'])
     master_file = final_df
+    master_file.to_csv("iifl.csv")
     return
 
 def get_symbol_from_token(token,exchange):
@@ -39,4 +40,3 @@ def get_exchange_number(exchange):
 if __name__ == '__main__':
     token = '3045'
     exchange = 'NSE'
-

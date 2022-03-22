@@ -12,14 +12,14 @@ logger = exception_handler.getFutureLogger(__name__)
 class FS_LogModifyHandler(QtCore.QObject):
     file_changed = QtCore.pyqtSignal(object)
 
-    def __init__(self, watch_loc):
+    def __init__(self, watch_loc_list: typing.List[str]):
         super(FS_LogModifyHandler, self).__init__()
 
-        self.watch_loc = watch_loc
-        self.last_update_time = None
+        self.watch_loc_list = watch_loc_list
         self._check_timer = None
+        self.last_update_time_dict = {path: os.stat(path).st_mtime_ns for path in self.watch_loc_list}
         self._watcher = QtCore.QFileSystemWatcher()
-        self._watcher.addPath(self.watch_loc)
+        self._watcher.addPaths(self.watch_loc_list)  # adding multiple log files paths
         self._watcher.fileChanged.connect(self._on_file_change)
 
         if os.name == "nt":  # only required for windows
@@ -36,16 +36,17 @@ class FS_LogModifyHandler(QtCore.QObject):
 
     def is_updated(self):
         try:
-            if os.stat(self.watch_loc).st_mtime_ns != self.last_update_time:
-                self.update_view()
+            for path in self.watch_loc_list:
+                if os.stat(path).st_mtime_ns != self.last_update_time_dict[path]:
+                    self.update_view(path)
         except (FileNotFoundError, FileExistsError):
             pass
 
-    def update_view(self):
-        if self.last_update_time == os.stat(self.watch_loc).st_mtime_ns:
+    def update_view(self, watch_loc):
+        if self.last_update_time_dict[watch_loc] == os.stat(watch_loc).st_mtime_ns:
             return
         try:
-            with open(self.watch_loc, 'r') as reader:
+            with open(watch_loc, 'r') as reader:
                 for line in reversed(list(reader)):
                     if re.search(settings.LOG_MATCHER_REGEX, line):
                         group_dict = re.search(settings.LOG_MATCHER_REGEX, line).groupdict()
@@ -55,17 +56,16 @@ class FS_LogModifyHandler(QtCore.QObject):
                         source = group_dict["source"]
                         try:
                             self.file_changed.emit((timestamp, log_level, message, source))
-                            self.last_update_time = os.stat(self.watch_loc).st_mtime_ns
+                            self.last_update_time_dict[watch_loc] = os.stat(watch_loc).st_mtime_ns
                             break
                         except RuntimeError:
                             pass
         except (FileNotFoundError, FileExistsError):
-            logger.critical(f"{self.watch_loc} missing replace it for proper functioning.")
+            logger.critical(f"{watch_loc} missing replace it for proper functioning.")
 
-    @QtCore.pyqtSlot()
-    def _on_file_change(self):
+    def _on_file_change(self, path: str):
         try:
-            self.update_view()
+            self.update_view(path)
         except (FileNotFoundError, FileExistsError):
             pass
 

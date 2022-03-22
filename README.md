@@ -17,12 +17,25 @@
 11. ## Interactive Order Management (order summary)
     - [x] create the base ui (table)
 - [ ] Order management table/with static fields
-- [ ] Total algo migration to the UI
-- [ ] Remove white palette from the UI (text color not showing)
-- [ ] Live PNL integration to the UI (find actually field names used) 
-- [ ] Check for atleast one kite account (row one)
+- [x] Total algo migration to the UI
+- [x] Remove white palette from the UI (text color not showing)
+- [x] Live PNL integration to the UI (find actually field names used) 
+- [x] Check for at-least one kite account (row one)
 
 ## Queries
-- [ ] Parallelization of the order management
-- [ ] Live PNL Grouping
+- [x] Parallelization of the order management
+- [x] Live PNL Grouping
 - [ ] OMS dynamic fields
+- [x] set instrument_df_dict['close_position'] = 1 for cancel order
+- kite, kite.quote
+- iifl, xt.get_quote(instrument,1502,'JSON'), instrument:  [{'exchangeSegment': 1, 'exchangeInstrumentID': int(res2['ExchangeInstrumentID'])}]
+  - res2['ExchangeInstrumentID'] get from iifl instrument file
+- [ ] stop and start strategy not working, because of the get_live_ticks functions are still alive (how to get control?)
+
+12. Pending Tasks:
+- [ ] Fixing orderbook page update (tradexcb)
+- [ ] Fix process terminate issue (tradexcb)
+- [ ] Upload OHLC data to MYSQL instead of sqlite3 (api)
+- [ ] Add filter logic and candle building logic to API (api)
+- [ ] Prepare iDelta (cli) for testing with api connection (idelta+api)
+- 
