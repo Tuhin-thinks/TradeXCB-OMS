@@ -1,16 +1,11 @@
 class StrategiesColumn:
-    tradexcb_columns = ['transaction_type', 'buy_ltp_percent', 'sell_ltp_percent', 'order_type', 'product_type',
-                        'wait_time', 'instrument', 'exchange', 'buy_above', 'use_priceba', 'sell_below', 'use_pricesb',
-                        'stoploss_type', 'stoploss', 'tsl_type', 'tsl', 'target_type', 'target', 'timeframe', 'vwap',
-                        'vwap_signal', 'ATRTS', 'ATR TS Period', 'ATR TS Multiplier', 'atrts_signal',
-                        'moving_average_period', 'moving_average', 'moving_average_signal']
 
     tradexcb_display_columns = ['transaction_type', 'buy_ltp_percent', 'sell_ltp_percent', 'order_type', 'product_type',
-                                'wait_time', 'exchange', 'Symbol Name', 'expiry', 'atm_strike', 'buy_above', 'use_priceba',
-                                'sell_below', 'use_pricesb', 'stoploss_type', 'stoploss', 'tsl_type', 'tsl',
-                                'target_type', 'target', 'timeframe', 'vwap',
-                                'vwap_signal', 'ATRTS', 'ATR TS Period', 'ATR TS Multiplier', 'atrts_signal',
-                                'moving_average_period', 'moving_average', 'moving_average_signal', "instrument"]
+                                'wait_time', 'exchange', 'Symbol Name', 'expiry', 'instrument', 'buy_above',
+                                'use_priceba', 'sell_below', 'use_pricesb', 'stoploss_type', 'stoploss', 'tsl_type',
+                                'tsl', 'target_type', 'target', 'timeframe', 'vwap', 'vwap_signal', 'ATRTS',
+                                'ATR TS Period', 'ATR TS Multiplier', 'atrts_signal', 'moving_average_period',
+                                'moving_average', 'moving_average_signal']
     tradexcb_numeric_columns = {
         'buy_ltp_percent': float, 'sell_ltp_percent': float, 'wait_time': float, 'buy_above': float,
         'sell_below': float, 'stoploss': float, 'tsl': float, 'target': float, 'timeframe': int,

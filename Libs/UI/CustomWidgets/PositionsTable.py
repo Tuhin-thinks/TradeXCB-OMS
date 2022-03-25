@@ -48,7 +48,7 @@ class PositionsView(QtWidgets.QTableView):
         self.horizontalHeader: 'QtWidgets.QHeaderView' = self.horizontalHeader()
         self.horizontalHeader.sectionClicked.connect(self.header_section_clicked)
         self.setPalette(global_parent.palette())
-        # todo: finalize this
+
         QtCore.QTimer.singleShot(2000, partial(self.setStyleSheet, self.global_parent.custom_style_sheet.tableview("dark")))
 
     def manage_col_space(self):

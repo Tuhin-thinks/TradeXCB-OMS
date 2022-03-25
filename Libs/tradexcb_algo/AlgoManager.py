@@ -83,7 +83,7 @@ class AlgoManager(QtCore.QObject):
     def start_algo_monitor(self):
         self._monitor_timer = QtCore.QTimer()
         self._monitor_timer.timeout.connect(self.algo_monitor)
-        self._monitor_timer.start(1000)
+        self._monitor_timer.start(1500)
         logger.debug('Algo monitoring started')
 
     def algo_monitor(self):

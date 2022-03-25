@@ -1,4 +1,5 @@
 import re
+import typing
 from datetime import datetime
 
 import pandas as pd
@@ -6,6 +7,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 
 from Libs.Utils.string_view_manipulator import humanize_string
+from Libs.UI.CustomWidgets import ComboBox
 from Libs.globals import *
 
 logger = exception_handler.getFutureLogger(__name__)
@@ -16,6 +18,7 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, owner, choices, header_labels: typing.List, col_index: int, extra_choices=None,
                  data_dict: typing.Dict = None):
         super().__init__(owner)
+        self.pFilterModel = None
         self.items: typing.Any[pd.DataFrame, typing.List] = choices
         self.owner = owner
         self.header_labels = header_labels
@@ -29,19 +32,19 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
             self.to_humanize = True
             self.humanized_str_items = [humanize_string(x) for x in self.items]
 
-        if self.col_name == "atm_strike":
-            choices = []
-            for i in range(-10, 11):
-                if i == 0:
-                    choices.append("ATM CE")
-                    choices.append("ATM PE")
-                    continue
-                operator = "" if i < 0 else "+"
-                atm_ce = f"ATM{operator}{i} CE"
-                atm_pe = f"ATM{operator}{i} PE"
-                choices.append(atm_ce)
-                choices.append(atm_pe)
-            self.strike_options = choices
+        # if self.col_name == "atm_strike":
+        #     choices = []
+        #     for i in range(-10, 11):
+        #         if i == 0:
+        #             choices.append("ATM CE")
+        #             choices.append("ATM PE")
+        #             continue
+        #         operator = "" if i < 0 else "+"
+        #         atm_ce = f"ATM{operator}{i} CE"
+        #         atm_pe = f"ATM{operator}{i} PE"
+        #         choices.append(atm_ce)
+        #         choices.append(atm_pe)
+        #     self.strike_options = choices
 
         if self.header_labels[col_index] == 'expiry':  # for expiry, extra choices is dataframe
             self.items: 'pd.DataFrame' = extra_choices
@@ -54,17 +57,24 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
         super().paint(painter, option, index)
 
     def createEditor(self, parent, option, index):
-        editor = QtWidgets.QComboBox(parent)
-        editor.setMaxVisibleItems(10)
-        editor.currentIndexChanged.connect(self.commit_editor)
-        editor.setPalette(self.owner.palette())  # to maintain the same color theme as parent (else renders white)
-        if self.to_humanize:
-            editor.addItems(list(map(humanize_string, self.items)))
+        if self.col_name == "instrument":
+            editor = ComboBox.CompleterComboBox(parent)
+            editor.currentIndexChanged.connect(self.commit_editor)
+            editor.setPalette(self.owner.palette())  # to maintain the same color theme as parent (else renders white)
+            editor.setModel(QtCore.QStringListModel([]))
+            editor.setModelColumn(0)
         else:
-            if not self.has_extra_choices:
-                editor.addItems(list(map(str, self.items)))
+            editor = QtWidgets.QComboBox(parent)
+            editor.setMaxVisibleItems(10)
+            editor.currentIndexChanged.connect(self.commit_editor)
+            editor.setPalette(self.owner.palette())  # to maintain the same color theme as parent (else renders white)
+            if self.to_humanize:
+                editor.addItems(list(map(humanize_string, self.items)))
             else:
-                editor.addItems([])
+                if not self.has_extra_choices:
+                    editor.addItems(list(map(str, self.items)))
+                else:
+                    editor.addItems([])
         return editor
 
     def commit_editor(self):
@@ -79,6 +89,9 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
         # --------- get exchange -----------
         exchange_model_index = index.model().index(index.row(), self.header_labels.index('exchange'))
         exchange = index.model().data(exchange_model_index, Qt.DisplayRole)
+        # --------- get expiry -----------
+        expiry_model_index = index.model().index(index.row(), self.header_labels.index('expiry'))
+        expiry = index.model().data(expiry_model_index, Qt.DisplayRole)
 
         if self.has_extra_choices:
             if isinstance(self.items, pd.DataFrame) and self.col_name == "expiry":
@@ -113,22 +126,22 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
                 editor.setCurrentIndex(0)  # set current choice as the first index
                 self.setModelData(editor, index.model(), index)  # save the current choice to the model
             return
-        elif self.col_name == "atm_strike":
-            if exchange in ("CDS", "MCX", "NFO"):  # check if current exchange type supports CE/PE
-                editor: QtWidgets.QComboBox
-                editor.clear()  # clear all previous choices
-                editor.addItems(self.strike_options)  # add new choices, default options
-                if value in self.strike_options:  # check if selected atm strike option is in valid choices
-                    _value_index = self.strike_options.index(value)
-                    editor.setCurrentIndex(_value_index)  # set current choice as the current index
-                else:
-                    editor.setCurrentIndex(0)  # set current choice as the first index
-                    self.setModelData(editor, index.model(), index)  # save the current choice to the model
-                return
-            else:  # for other exchanges, we don't have atm_strike options
-                editor: QtWidgets.QComboBox
-                editor.clear()  # clear all previous choices
-        # --------------- for columns other than 'Expiry Date' --------------------------
+        elif self.col_name == "instrument":
+            # find all possible tradingsymbol choices for given expiry, symbol name and exchange, from self.items
+            filters = ((self.items['name'] == symbol_name) & (self.items['exchange'] == exchange) &
+                       (self.items['expiry'] == expiry))
+            tradingsymbol_list: typing.List = self.items[filters]['tradingsymbol'].tolist()
+            # editor.addItems(tradingsymbol_list)  # add new choices, default options
+            editor.setModel(QtCore.QStringListModel(tradingsymbol_list))
+            editor.setModelColumn(0)
+            if value in tradingsymbol_list:  # check if selected atm strike option is in valid choices
+                _value_index = tradingsymbol_list.index(value)
+                editor.setCurrentIndex(_value_index)  # set current choice as the current index
+            else:
+                editor.setCurrentIndex(0)  # set current choice as the first index
+                self.setModelData(editor, index.model(), index)  # save the current choice to the model
+            return
+        # --------------- for other columns --------------------------
         self.items: list
         try:
             if self.to_humanize:
@@ -137,6 +150,8 @@ class ChoiceBoxDelegate(QtWidgets.QStyledItemDelegate):
                 num = self.items.index(value)
             editor.setCurrentIndex(num)
         except ValueError as ve:
+            traceback.print_exc()
+            print(f"error for column: {self.col_name}, value: {value}, \noptions list: {self.items}")
             editor.addItem(value)
             if self.to_humanize:
                 self.humanized_str_items.append(value)
@@ -238,19 +253,23 @@ class StrategyViewModel(QtCore.QAbstractTableModel):
             return data_
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
-        if role == QtCore.Qt.EditRole and value != "":
+        if index.column() == self.header_labels.index("instrument") and role == QtCore.Qt.EditRole:
+            self._data[index.row()][index.column()] = value
+        if role == QtCore.Qt.EditRole and value != "" and index.column() != self.header_labels.index("instrument"):
             self._data[index.row()][index.column()] = value
             self.dataChanged.emit(index, index, (QtCore.Qt.DisplayRole,))
             _column_name = self.header_labels[index.column()]
-            if _column_name == 'Symbol Name':
-                _index = self.index(index.row(), self.header_labels.index('expiry'))
-                self.dataChanged.emit(_index, _index, (QtCore.Qt.DisplayRole,))
-            elif _column_name == 'exchange':
-                symb_model_index = self.index(index.row(), self.header_labels.index('Symbol Name'))
-                self.dataChanged.emit(symb_model_index, symb_model_index, (QtCore.Qt.DisplayRole,))
+            symb_model_index = self.index(index.row(), self.header_labels.index('Symbol Name'))
+            instrument_model_index = self.index(index.row(), self.header_labels.index('instrument'))
+            expiry_index = self.index(index.row(), self.header_labels.index('expiry'))
 
-                atm_model_index = self.index(index.row(), self.header_labels.index('atm_strike'))
-                self.dataChanged.emit(atm_model_index, atm_model_index, (QtCore.Qt.DisplayRole,))
+            if _column_name == 'Symbol Name':
+                self.dataChanged.emit(expiry_index, expiry_index, (QtCore.Qt.DisplayRole,))
+                self.dataChanged.emit(instrument_model_index, instrument_model_index, (QtCore.Qt.DisplayRole,))
+            elif _column_name == 'exchange':
+                self.dataChanged.emit(symb_model_index, symb_model_index, (QtCore.Qt.DisplayRole,))
+            elif _column_name == 'expiry':
+                self.dataChanged.emit(instrument_model_index, instrument_model_index, (QtCore.Qt.DisplayRole,))
             return True
         return False
 

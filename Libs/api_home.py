@@ -1,8 +1,7 @@
-from datetime import datetime
 import os.path
 import threading
-import typing
 import webbrowser
+from datetime import datetime
 
 import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -94,8 +93,6 @@ class ApiHome(QtWidgets.QMainWindow):
         self.multi_client_layout.setSpacing(0)
         # -------------------------------------------------------------
         self.ui.scrollArea_trading_symb.verticalScrollBar().rangeChanged.connect(self.scrollBottom)
-        self.change_tab_widget_theme()
-
         # ------------ menu actions --------------
         self.repair_menu = QtWidgets.QMenu("Repair")
         self.repair_menu.addAction("Clean cached files", self.repair_cached_files)
@@ -162,15 +159,6 @@ class ApiHome(QtWidgets.QMainWindow):
         self.load_client_details()
 
     # -----------------------> END OF __init__ <----------------------------
-    def change_tab_widget_theme(self):
-        """
-        Change the tab widget theme to the current theme
-        :return:
-        """
-        # style = TabProxyStyle.CustomTabStyle()
-        # self.ui.tabWidget.tabBar().setStyle(style)
-        # todo: remove this function
-        pass
 
     # ======================= EXPORT SLOTS =================================
     @QtCore.pyqtSlot()
@@ -331,7 +319,7 @@ class ApiHome(QtWidgets.QMainWindow):
         self.stop_trading()
         logger.info("Strategy algorithm Stopped successfully")
 
-    def update_orderbook_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):  # todo: complete this function
+    def update_orderbook_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):
         """Updates orderbook data"""
         self.oms_view.update_data(data)  # reset the model data with new data
         self.oms_view.update()  # update the view
@@ -566,7 +554,7 @@ class ApiHome(QtWidgets.QMainWindow):
         """
         item_count = self.ui.comboBox_trading_symb_select_strategy.count()
         choice_box = self.ui.comboBox_trading_symb_select_strategy
-        all_cols = SymbolMapping.StrategiesColumn.tradexcb_display_columns  # todo: finalize this
+        all_cols = SymbolMapping.StrategiesColumn.tradexcb_display_columns
         for strategy_text, table_rows in loaded_strategies.items():
             strategy_choice_index = [choice_box.itemText(_index) for _index in range(item_count)].index(strategy_text)
             self._add_strategy(strategy_text, strategy_choice_index)

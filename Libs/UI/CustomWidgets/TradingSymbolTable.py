@@ -34,7 +34,7 @@ class StrategyView(QtWidgets.QTableView):
 
         # ------- initial data setup ------------
         self.load_symbol_names()
-        self.fill_default_data()
+        # self.fill_default_data()
 
         self.setPalette(self.global_parent.palette())
 
@@ -44,8 +44,8 @@ class StrategyView(QtWidgets.QTableView):
     def increase_col_space(self) -> None:
         extra_space_factor = 5
         for col in range(self._model.columnCount()):
-            if col == self.header_labels.index("Symbol Name"):
-                self.setColumnWidth(col, 200)
+            if col == self.header_labels.index("instrument"):  # 9
+                self.setColumnWidth(col, 250)
             elif col in (0, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 17, 19, 22, 23, 24, 27, 29, 30):
                 self.setColumnWidth(col, 150)
             else:
@@ -81,7 +81,7 @@ class StrategyView(QtWidgets.QTableView):
                   (instruments_df['name'] != '')
         nse_options_df = instruments_df[filters]
 
-        self.name_expiry_df = instruments_df[['name', 'expiry', 'exchange']]
+        self.name_expiry_df = instruments_df[['name', 'tradingsymbol', 'expiry', 'exchange']]
         symbol_col = self.header_labels.index('Symbol Name')
         self._symb_names_delegate = Model__StrategyTable.ChoiceBoxDelegate(self, self.name_expiry_df, self.header_labels, symbol_col,
                                                                            data_dict={'nse_options_df': nse_options_df})
@@ -92,7 +92,14 @@ class StrategyView(QtWidgets.QTableView):
                                                                          None, self.header_labels, exp_col,
                                                                          extra_choices=self.name_expiry_df)
         self.setItemDelegateForColumn(exp_col, self._delegate_exp_date)
+
+        instrument_column = self.header_labels.index('instrument')
+        self._delegate_instrument = Model__StrategyTable.ChoiceBoxDelegate(self, self.name_expiry_df, self.header_labels,
+                                                                           instrument_column)
+        self.setItemDelegateForColumn(instrument_column, self._delegate_instrument)
+
         logger.debug("Delegates added")
+        self.fill_default_data()
 
     def destroy_loader(self):
         try:
@@ -126,25 +133,16 @@ class StrategyView(QtWidgets.QTableView):
                 if column_name == "Symbol Name":
                     self.default_data.append("NIFTY")  # default symbol name
                     continue
-                elif column_name == "atm_strike":
-                    self.default_data.append("ATM CE")
-                    choices = []
-                    for i in range(-10, 11):
-                        if i == 0:
-                            choices.append("ATM CE")
-                            choices.append("ATM PE")
-                            continue
-                        operator = "" if i < 0 else "+"
-                        atm_ce = f"ATM{operator}{i} CE"
-                        atm_pe = f"ATM{operator}{i} PE"
-                        choices.append(atm_ce)
-                        choices.append(atm_pe)
-
-                    self.setItemDelegateForColumn(col_index,
-                                                  Model__StrategyTable.ChoiceBoxDelegate(self,
-                                                                                         list(map(str, choices)),
-                                                                                         self.header_labels,
-                                                                                         col_index))
+                if column_name == "instrument":
+                    symbol_name = "NIFTY"
+                    exchange = "NFO"
+                    filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+                    expiry = self.name_expiry_df[filters]['expiry'].values[0]  # find default expiry
+                    instrument_filters = ((self.name_expiry_df['name'] == symbol_name) &
+                                          (self.name_expiry_df['expiry'] == expiry) &
+                                          (self.name_expiry_df['exchange'] == exchange))
+                    instrument = self.name_expiry_df[instrument_filters]['tradingsymbol'].values[0]  # default instrument
+                    self.default_data.append(instrument)
                     continue
 
                 self.default_data.append(str(column_info_dict.get("default_value")))
@@ -167,7 +165,7 @@ class StrategyView(QtWidgets.QTableView):
                     _copy_data[_to_chg_key] = _custom_value
                 _symbol_name = _copy_data.get("Symbol Name")
                 try:
-                    if "expiry" not in _copy_data:
+                    if not _copy_data.get("expiry"):
                         _copy_data["expiry"] = self.name_expiry_df[self.name_expiry_df.name ==
                                                                         _symbol_name].iloc[0].expiry
                 except (KeyError, IndexError, NameError):

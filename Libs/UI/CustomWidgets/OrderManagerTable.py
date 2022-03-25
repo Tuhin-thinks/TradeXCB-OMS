@@ -33,9 +33,6 @@ class OMSTable(QtWidgets.QTableView):
 
     def update_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):
         self.__model.populate(data_dict=data)
-        # todo: remove this
-        with open("Orderbook-data.json", "w") as f:
-            json.dump(data, f, indent=3)
 
     def set_cancel_order_queue(self, queue: multiprocessing.Queue):
-        self.__button_delegate.set_cancel_orders_queue(queue)  # TODO: Update this
+        self.__button_delegate.set_cancel_orders_queue(queue)

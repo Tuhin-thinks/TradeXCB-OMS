@@ -39,10 +39,6 @@
       "default_value": "NIFTY",
       "dropdown": false
    },
-  "atm_strike": {
-      "default_value": null,
-      "dropdown": false
-   },
    "expiry": {
       "default_value": "",
       "dropdown": false
@@ -59,7 +55,7 @@
    },
    "instrument": {
       "default_value": null,
-      "dropdown": true,
+      "dropdown": false,
       "dropdown_values": []
    },
 

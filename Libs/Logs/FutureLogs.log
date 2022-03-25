@@ -1,14 +1,453 @@
-2022-03-22 18:58:09 *** DEBUG *** updating login time *** __main__
-2022-03-22 18:58:09 *** DEBUG *** update thread started... *** __main__
-2022-03-22 18:58:10 *** DEBUG *** control back to main thread... *** __main__
-2022-03-22 18:58:10 *** DEBUG *** opening application window *** __main__
-2022-03-22 18:58:10 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
-2022-03-22 18:58:10 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
-2022-03-22 18:58:10 *** INFO *** Updating OI data *** Libs.api_home
-2022-03-22 18:58:10 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
-2022-03-22 18:58:10 *** DEBUG *** Application window displayed, closing login window *** __main__
-2022-03-22 18:58:10 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-22 18:58:11 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
-2022-03-22 18:59:03 *** DEBUG *** New option added for instrument *** Libs.UI.Models_n_Delegates.Model__StrategyTable
-2022-03-22 18:59:03 *** DEBUG *** New option added for instrument *** Libs.UI.Models_n_Delegates.Model__StrategyTable
-2022-03-22 18:59:34 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:03:24 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:03:24 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:03:25 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:03:25 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:03:25 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:03:26 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:03:26 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:03:26 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:03:26 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:03:26 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:05:10 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:05:10 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:05:10 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:05:10 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:05:11 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:05:11 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:05:11 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:05:11 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:05:11 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:05:11 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:05:12 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:05:16 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:05:16 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:07:27 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:07:27 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:07:28 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:07:28 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:07:28 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:07:28 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:07:28 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:07:28 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:07:29 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:07:29 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:07:30 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:07:32 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:07:32 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:08 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:09:08 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:09:08 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:09:08 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:09:09 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:09:09 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:09:09 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:09:09 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:09:09 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:09:14 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:09:14 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for stoploss_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for tsl_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for target_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for timeframe *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for vwap *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for vwap_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for ATRTS *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for atrts_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:09:17 *** DEBUG *** New option added for moving_average *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:19:42 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:19:42 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:19:43 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:19:43 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:19:43 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:19:43 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:19:43 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:19:43 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:19:44 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:19:47 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:19:48 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:19:59 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:20:07 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:20:07 *** DEBUG *** New option added for stoploss_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:38 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:21:49 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:21:49 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:21:49 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:21:49 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:21:50 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:21:50 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:21:50 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:21:50 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:21:50 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:21:53 *** WARNING *** 'NoneType' object has no attribute 'get'For column name: atm_strike *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 168, in fill_default_data
+self.default_data.append(str(column_info_dict.get("default_value")))
+AttributeError: 'NoneType' object has no attribute 'get'
+2022-03-24 22:21:53 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:21:54 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for stoploss_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for tsl_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for target_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for timeframe *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for vwap *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for vwap_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for ATRTS *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:57 *** DEBUG *** New option added for atrts_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:21:58 *** DEBUG *** New option added for moving_average *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:22:17 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:22:33 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:22:33 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:22:34 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:22:34 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:22:34 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:22:34 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:22:34 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:22:34 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:22:35 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:22:42 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:22:43 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:23:31 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:28:18 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:28:18 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:28:18 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:28:18 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:28:18 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:28:19 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:28:19 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:28:19 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:28:19 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:28:23 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:28:23 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:28:24 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:28:24 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:31:36 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:31:47 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:31:47 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:31:48 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:31:48 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:31:48 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:31:48 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:31:48 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:31:48 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:31:48 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:31:51 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:31:52 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:35:24 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:35:36 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:35:36 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:35:37 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:35:37 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:35:37 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:35:37 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:35:37 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:35:37 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:35:37 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:35:40 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:35:41 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:35:43 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:35:43 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:35:46 *** DEBUG *** New option added for stoploss_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:35:46 *** DEBUG *** New option added for tsl_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:35:46 *** DEBUG *** New option added for target_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:36:35 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:37:47 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:37:47 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:37:47 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:37:47 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:37:48 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:37:48 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:37:48 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:37:48 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:37:48 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:37:52 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:37:53 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for stoploss_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for tsl_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for target_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for timeframe *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for vwap *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for vwap_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for ATRTS *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for atrts_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:37:56 *** DEBUG *** New option added for moving_average *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:38:15 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:39:02 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:39:03 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:39:03 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:39:03 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:39:03 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:39:04 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:39:04 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:39:04 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:39:04 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:39:07 *** WARNING *** 'NoneType' object is not subscriptableFor column name: instrument *** Libs.UI.CustomWidgets.TradingSymbolTable
+Traceback (most recent call last):
+File "/media/tuhin/hdd/Documents/All_Python_Resources/StockApp/MCxB/Libs/UI/CustomWidgets/TradingSymbolTable.py", line 138, in fill_default_data
+filters = (self.name_expiry_df['name'] == symbol_name) & (self.name_expiry_df['exchange'] == exchange)
+TypeError: 'NoneType' object is not subscriptable
+2022-03-24 22:39:07 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:39:09 *** DEBUG *** New option added for use_priceba *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:09 *** DEBUG *** New option added for use_pricesb *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for stoploss_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for tsl_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for target_type *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for timeframe *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for vwap *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for vwap_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for ATRTS *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for atrts_signal *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:39:11 *** DEBUG *** New option added for moving_average *** Libs.UI.Models_n_Delegates.Model__StrategyTable
+2022-03-24 22:43:55 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:44:06 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:44:06 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:44:06 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:44:06 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:44:07 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:44:07 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:44:07 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:44:07 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:44:07 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:44:11 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:44:11 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:44:47 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:48:52 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:48:52 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:48:52 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:48:52 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:48:53 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:48:53 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:48:53 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:48:53 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:48:53 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:48:56 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:48:56 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:49:31 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 22:51:54 *** DEBUG *** updating login time *** __main__
+2022-03-24 22:51:54 *** DEBUG *** update thread started... *** __main__
+2022-03-24 22:51:54 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 22:51:54 *** DEBUG *** opening application window *** __main__
+2022-03-24 22:51:55 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 22:51:55 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 22:51:55 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 22:51:55 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 22:51:55 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 22:51:59 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:51:59 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 22:52:20 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:03:24 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:03:24 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:03:25 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:03:25 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:03:25 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:03:25 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:03:25 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:03:25 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:03:25 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:03:29 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:03:29 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:03:39 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:03:59 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:03:59 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:04:00 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:04:00 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:04:00 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:04:00 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:04:00 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:04:00 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:04:00 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:04:04 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:04:04 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:05:44 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:12:23 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:12:23 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:12:23 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:12:23 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:12:24 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:12:24 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:12:24 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:12:24 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:12:24 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:12:29 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:12:29 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:13:03 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:19:24 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:19:24 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:19:24 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:19:24 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:19:25 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:19:25 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:19:25 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:19:25 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:19:25 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:19:33 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:19:33 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:21:44 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:21:44 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:21:45 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:21:45 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:21:45 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:21:45 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:21:45 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:21:45 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:21:45 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:21:49 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:21:49 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:22:40 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:24:00 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:24:00 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:24:00 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:24:00 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:24:01 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:24:01 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:24:01 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:24:01 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:24:01 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:24:05 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:24:05 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:26:29 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:28:12 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:28:12 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:28:12 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:28:12 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:28:13 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:28:13 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:28:13 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:28:13 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:28:13 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:28:17 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:28:17 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:29:16 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:29:43 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:29:43 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:29:43 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:29:43 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:29:43 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:29:44 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:29:44 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:29:44 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:29:44 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:29:54 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:29:54 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:30:26 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:35:23 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:35:23 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:35:23 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:35:23 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:35:23 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:35:24 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:35:24 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:35:24 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:35:24 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:35:28 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:35:28 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:36:24 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:37:07 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:37:07 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:37:08 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:37:08 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:37:08 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:37:08 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:37:08 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:37:08 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:37:09 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:37:13 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:37:13 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:38:11 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:39:11 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:39:11 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:39:11 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:39:11 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:39:12 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:39:12 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:39:12 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:39:12 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:39:12 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:39:30 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:39:30 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:40:26 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:40:52 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:40:52 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:40:53 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:40:53 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:40:53 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:40:54 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:40:54 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:40:54 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:40:54 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:40:57 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:40:57 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:42:36 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:46:08 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:46:08 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:46:08 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:46:08 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:46:09 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:46:09 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:46:09 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:46:09 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:46:09 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:46:12 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:46:12 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:47:56 *** INFO *** Exit from API Home *** Libs.api_home
+2022-03-24 23:48:26 *** DEBUG *** updating login time *** __main__
+2022-03-24 23:48:26 *** DEBUG *** update thread started... *** __main__
+2022-03-24 23:48:27 *** DEBUG *** control back to main thread... *** __main__
+2022-03-24 23:48:27 *** DEBUG *** opening application window *** __main__
+2022-03-24 23:48:27 *** INFO *** Positions Logging started *** Libs.UI.CustomWidgets.PositionsTable
+2022-03-24 23:48:27 *** INFO *** Recalibrating update timer to 5 minutes. *** Libs.api_home
+2022-03-24 23:48:27 *** INFO *** Updating OI data *** Libs.api_home
+2022-03-24 23:48:27 *** INFO *** Update timer recalibrated to 5 minutes. *** Libs.api_home
+2022-03-24 23:48:27 *** DEBUG *** Application window displayed, closing login window *** __main__
+2022-03-24 23:48:31 *** DEBUG *** Delegates added *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:48:31 *** INFO *** New strategy added: Default *** Libs.UI.CustomWidgets.TradingSymbolTable
+2022-03-24 23:57:14 *** INFO *** Exit from API Home *** Libs.api_home

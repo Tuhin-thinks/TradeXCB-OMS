@@ -12,7 +12,7 @@ class CompleterComboBox(QtWidgets.QComboBox):
         self.completion_timer = None
         self.timer_running = False
         self.search_margin = 2  # minimum number of characters required to initiate a valid search
-        self.wait_time = 1500  # wait for 500 before completion starts
+        self.wait_time = 1500  # wait for 1.5secs before completion popup appears
         self.setEditable(True)
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -58,6 +58,8 @@ class CompleterComboBox(QtWidgets.QComboBox):
                 pattern = f"^{text}.*"
             self.pFilterModel.setFilterRegularExpression(QtCore.QRegularExpression(pattern, QtCore.QRegularExpression.CaseInsensitiveOption))
             self.showPopup()
+        else:
+            self.pFilterModel.invalidateFilter()
 
     def setModel(self, model: QtCore.QAbstractItemModel) -> None:
         self.completer_ = QtWidgets.QCompleter(self)
@@ -87,3 +89,4 @@ class CompleterComboBox(QtWidgets.QComboBox):
             self.timer_running = False
             self.to_change = False
             self.to_wait = self.wait_time
+            self.hidePopup()
