@@ -1,8 +1,8 @@
 import json
-import pandas as pd
+
 from Libs.globals import *
 
-BROKER_NAMES = ["Zerodha", "Angel", "IIFL", "AliceBlue"]
+BROKER_NAMES = ["Zerodha", "Angel", "IIFL", "Alice Blue"]
 
 STRATEGIES = ["Default"]
 

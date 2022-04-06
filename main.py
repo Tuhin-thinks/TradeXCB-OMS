@@ -1,7 +1,6 @@
-import os.path
+import multiprocessing
 import pprint
 import sys
-from functools import partial
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -10,12 +9,11 @@ from Libs.Concurrency import Validator, Worker
 from Libs.Storage import manage_local as localdb, encrypto
 from Libs.UI import Interact, user_login
 from Libs.UI.CustomWidgets import (email_input_widget, security_question_widget, reset_password_dialog,
-                                   DisclaimerDialog, PNLProfit_Dialog)
+                                   DisclaimerDialog)
 from Libs.UI.Utils import field_validator
-from Libs.Utils import exception_handler
 from Libs.api_home import ApiHome
-from Libs.icons_lib import Icons
 from Libs.globals import *
+from Libs.icons_lib import Icons
 
 BASE_DIR = os.path.dirname(__file__)
 ICONS_DIR = os.path.join(BASE_DIR, 'Libs', 'UI', 'icons')
@@ -591,5 +589,6 @@ def test():
 
 
 if __name__ == '__main__':
+    if os.name == 'nt':
+        multiprocessing.freeze_support()
     run_app()
-    # test()

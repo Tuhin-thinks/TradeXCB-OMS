@@ -1,13 +1,12 @@
-import requests
 import pandas as pd
-import time
 
-master_file= None
+master_file = None
 
-exchange_map =  {'NSE':'NSECM','NFO':'NSEFO','CDS':'NSECD'}
-exchange_map_inverse = {'NSECM':'NSE','NSEFO':'NFO','NSECD':'CDS'}
+exchange_map = {'NSE': 'NSECM', 'NFO': 'NSEFO', 'CDS': 'NSECD'}
+exchange_map_inverse = {'NSECM': 'NSE', 'NSEFO': 'NFO', 'NSECD': 'CDS'}
 number_exchange_dict = {2: 'NSEFO', 1: 'NSECM'}
-exchange_number_dict = {'NSEFO':2, 'NSECM':1}
+exchange_number_dict = {'NSEFO': 2, 'NSECM': 1}
+
 
 def download_master_file(xt):
     global master_file
@@ -24,17 +23,17 @@ def download_master_file(xt):
     master_file.to_csv("iifl.csv")
     return
 
-def get_symbol_from_token(token,exchange):
-    global master_file,exchange_map
+
+def get_symbol_from_token(token, exchange):
+    global master_file, exchange_map
     exchange = exchange_map[exchange]
-    row = master_file[(master_file['ExchangeInstrumentID']==str(token))&(master_file['ExchangeSegment']==str(exchange))]
+    row = master_file[
+        (master_file['ExchangeInstrumentID'] == str(token)) & (master_file['ExchangeSegment'] == str(exchange))]
     return row
 
 
 def get_exchange_number(exchange):
     return exchange_number_dict[exchange_map[exchange]]
-
-
 
 
 if __name__ == '__main__':

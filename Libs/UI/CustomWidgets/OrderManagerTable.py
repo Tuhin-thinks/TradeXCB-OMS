@@ -31,7 +31,7 @@ class OMSTable(QtWidgets.QTableView):
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         super(OMSTable, self).resizeEvent(e)
 
-    def update_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):
+    def update_data(self, data: typing.Dict[str, typing.List[typing.Any]]):
         self.__model.populate(data_dict=data)
 
     def set_cancel_order_queue(self, queue: multiprocessing.Queue):

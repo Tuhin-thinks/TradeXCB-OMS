@@ -1,4 +1,9 @@
 **__pycache__**
 **.idea**
 **.zip
+.issues
 /sample_file_open.py
+.mypy_cache
+**.log
+**.txt
+**.png

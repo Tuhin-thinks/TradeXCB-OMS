@@ -1,6 +1,9 @@
 import pandas as pd
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
+from Libs.Utils import exception_handler
+
+logger = exception_handler.getFutureLogger(__name__)
 
 
 class PositionsGroupingModel(QtCore.QAbstractTableModel):
@@ -18,7 +21,7 @@ class PositionsGroupingModel(QtCore.QAbstractTableModel):
         self.endResetModel()
 
     def rowCount(self, parent=None):
-        return self.data.shape[0]
+        return self.__proxy_data.shape[0]
 
     def columnCount(self, parent=None):
         return len(self.header_labels)
@@ -26,8 +29,12 @@ class PositionsGroupingModel(QtCore.QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         row = index.row()
         if role == Qt.DisplayRole:
-            data = str(self.__proxy_data.iloc[row, index.column()])
-            return data
+            try:
+                data = str(self.__proxy_data.iloc[row, index.column()])
+                return data
+            except IndexError:
+                print(self.__proxy_data)
+                logger.error("IndexError: Index out of range", exc_info=True)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
@@ -47,7 +54,7 @@ class PositionsGroupingModel(QtCore.QAbstractTableModel):
         self.endResetModel()
 
     def calculate_profit(self):
-        return self.__proxy_data['profit'].sum()
+        return self.__proxy_data['profit'].sum().round(2)
 
     def calculate_quantity(self):
         buy_quantity = self.__proxy_data[self.__proxy_data['Trend'].str.lower() == 'buy']['quantity'].sum()

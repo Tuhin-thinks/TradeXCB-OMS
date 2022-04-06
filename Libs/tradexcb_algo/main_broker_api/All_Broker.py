@@ -1,30 +1,26 @@
-import typing
 import datetime
+import json
+import os
+import sys
+import threading
+import typing
+import urllib.parse as urlparse
 
-from . import main_broker
 import onetimepass as otp
 import pandas as pd
-import json
 import requests
-import urllib.parse as urlparse
-import sys
-from . import angel_helper, iifl_helper
-import os
-import time
-import threading
-# Kite API
-from kiteconnect import KiteConnect, KiteTicker
-# IIFL API
-# from Libs.tradexcb_algo.Connect import XTSConnect
-# from Libs.tradexcb_algo.MarketDataSocketClient import MDSocket_io
-from ..Connect import XTSConnect
-from ..MarketDataSocketClient import MDSocket_io
-
 # Alice Blue
 from alice_blue import *
-
+# Kite API
+from kiteconnect import KiteConnect, KiteTicker
 # Angel one API
 from smartapi import SmartConnect
+
+from . import angel_helper, iifl_helper
+from . import main_broker
+# IIFL API
+from ..Connect import XTSConnect
+from ..MarketDataSocketClient import MDSocket_io
 
 Allcols = main_broker.Allcols
 
@@ -184,13 +180,13 @@ class All_Broker(main_broker.Broker):
         username = self.all_data_kwargs[Allcols.username.value]
         password = self.all_data_kwargs[Allcols.password.value]
         apikey = self.all_data_kwargs[Allcols.apikey.value]
-        app_id = self.all_data_kwargs[Allcols.apikey.value]
+        # app_id = self.all_data_kwargs[Allcols.apikey.value]
         secretkey = self.all_data_kwargs[Allcols.apisecret.value]
         totp_code = self.all_data_kwargs[Allcols.totp_secret.value]
         security_pin = self.all_data_kwargs[Allcols.pin.value]
-        access_token = self.all_data_kwargs[Allcols.access_token.value]
+        # access_token = self.all_data_kwargs[Allcols.access_token.value]
         host = self.all_data_kwargs[Allcols.host.value]
-        consumer_key = self.all_data_kwargs[Allcols.consumer_key.value]
+        # consumer_key = self.all_data_kwargs[Allcols.consumer_key.value]
         source = self.all_data_kwargs[Allcols.source.value]
         market_appkey = self.all_data_kwargs['market_appkey']
         market_secretkey = self.all_data_kwargs['market_secretkey']
@@ -211,7 +207,7 @@ class All_Broker(main_broker.Broker):
                                     data={'user_id': username,
                                           'password': password})
                 data = json.loads(res1.text)
-                print("Data", data)
+                # print("Data", data)
                 res2 = session.post("https://kite.zerodha.com/api/twofa",
                                     data={'user_id': username,
                                           'request_id': data['data']["request_id"],
@@ -247,6 +243,10 @@ class All_Broker(main_broker.Broker):
                 response = self.market_api.marketdata_login()
                 # iifl_helper.download_master_file(self.market_api)
                 # print(self.broker.get_profile())
+                print(f'''
+IIFL:
+{apikey=}
+{secretkey=}''')
                 self.broker = XTSConnect(apikey, secretkey, source, host)
 
                 self.market_token = response['result']['token']
@@ -265,16 +265,22 @@ class All_Broker(main_broker.Broker):
 
         elif self.broker_name.lower() == 'alice blue':
             try:
+                print(f"""
+For alice blue:
+{username=}
+{password=}
+{security_pin=}
+{secretkey=}
+{apikey=}""")
                 access_token = AliceBlue.login_and_get_access_token(username=str(int(username)), password=str(password),
                                                                     twoFA=str(int(security_pin)),
                                                                     api_secret=str(secretkey), app_id=str(apikey))
-                self.log_this(f"Access Token : {access_token}", log_level='info')
+                self.log_this(f"Access Token for alice blue: {access_token}", log_level='info')
                 self.broker = AliceBlue(username=str(int(username)), password=str(password), access_token=access_token)
             except:
                 self.broker = None
                 self.log_this(f"Error in logging in for {username} Broker : {self.broker_name}"
                               f" Error : {sys.exc_info()}")
-
 
         elif self.broker_name.lower() == 'angel':
             try:
@@ -290,7 +296,7 @@ class All_Broker(main_broker.Broker):
                               f" Error : {sys.exc_info()}")
 
     def place_order(self, **kwargs):
-        '''
+        """
 
         :param kwargs: kwargs = {'variety' :'regular',
                                 'exchange' : 'NFO',
@@ -308,7 +314,7 @@ class All_Broker(main_broker.Broker):
                                 'trailing_stoploss' : None,
                                 'tag' : None }
         :return: order_id,message
-        '''
+        """
         order_id = None
         message = 'success'
         tradingsymbol = kwargs['tradingsymbol']
@@ -599,8 +605,13 @@ class All_Broker(main_broker.Broker):
 
         elif self.broker_name.lower() == 'alice blue':
             try:
+                cols = ['validity', 'user_order_id', 'trigger_price', 'transaction_type', 'trading_symbol', 'remaining_quantity', 'rejection_reason', 'quantity', 'product', 'price', 'order_type', 'order_tag', 'order_status', 'order_entry_time', 'oms_order_id', 'nest_request_id', 'lotsize', 'login_id', 'leg_order_indicator', 'instrument_token', 'filled_quantity', 'exchange_time'
+                    , 'exchange_order_id', 'exchange', 'disclosed_quantity', 'client_id', 'average_price']
                 orders = self.broker.get_order_history()
-                order_history = pd.DataFrame(orders['data']['pending_orders'] + orders['data']['completed_orders'])
+                if 'pending_orders' in orders['data'] and 'completed_orders' in orders['data']:
+                    order_history = pd.DataFrame(orders['data']['pending_orders'] + orders['data']['completed_orders'])
+                else:
+                    order_history = pd.DataFrame(columns=cols)
                 return order_history
             except:
                 self.log_this(error_message)
@@ -640,17 +651,14 @@ class All_Broker(main_broker.Broker):
                     interval = str(timeframe) + str(timeframesuffix)
                 df = self.broker.historical_data(instrument_token=int(instrument_token), interval=interval,
                                                  from_date=from_dt, to_date=to_dt)
-                # print(df)
+
                 for x in range(0, len(df)):
                     df[x]['date'] = df[x]['date'].replace(tzinfo=None)
                 df = pd.DataFrame(df)
                 df.set_index('date', inplace=True)
                 message = 'success'
-            except:
-                message = str(sys.exc_info())
-                self.log_this(error_message)
-
-
+            except Exception as e:
+                self.logger.critical(f"Error is getting data: {str(e)}", exc_info=True)
 
         elif self.broker_name.lower() == 'iifl':
             # instrument_iifl_row = iifl_helper.get_symbol_from_token(instrument_row.iloc[-1]['exchange_token'],instrument_row.iloc[-1]['exchange'])

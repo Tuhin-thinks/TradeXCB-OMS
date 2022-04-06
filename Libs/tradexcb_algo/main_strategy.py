@@ -1,3 +1,4 @@
+import warnings
 import multiprocessing
 import os
 import sys
@@ -18,6 +19,7 @@ from .TA_Lib import HA
 from .main_broker_api import All_Broker
 
 pd.set_option('expand_frame_repr', False)
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 logger = exception_handler.getAlgoLogger(__name__)
 
@@ -242,7 +244,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         users_df = pd.DataFrame(api_data)  # read all data from sqlite
         users_df['No of Lots'] = users_df['No of Lots'].astype(int)
         users_df.index = users_df['Name']
-        users_df = users_df.tail(1)
+        # users_df = users_df.tail(1)
         users_df['broker'] = None
         users_df_dict = users_df.to_dict('index')
         for each_key in users_df_dict:
@@ -339,7 +341,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
     try:
         main_broker.get_live_ticks()
         time.sleep(5)
-        logger.info("Getting Live Ticks")
+        logger.debug("Getting Live Ticks")
     except Exception:
         logger.critical(f"Error in Getting Live Ticks. Error : {sys.exc_info()} ", exc_info=True)
         manager_dict['algo_error'] = f"Error in Getting Live Ticks. Error : {sys.exc_info()}"
@@ -352,6 +354,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
     logger.info(f"{main_broker.latest_ltp}")
 
     while manager_dict['force_stop'] is False:
+        time.sleep(1)  # wait for 1 second/iteration
         final_df = final_df[
             ['tradingsymbol', 'exchange', 'quantity', 'timeframe', 'multiplier', 'entry_price', 'entry_time',
              'exit_price', 'exit_time'
@@ -445,6 +448,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
 
             orderbook_export_data["Order Status"].append(order_status)
             orderbook_export_data["instrument_df_key"].append(each_key)  # will be used to reference in close positions
+
+        orderbook_export_data["Close Position?"] = [0] * len(orderbook_export_data["instrument_df_key"])
         manager_dict['orderbook_data'] = orderbook_export_data  # pass the dictionary to the UI
 
         # --------------- look for to be closed positions ---------------
@@ -464,7 +469,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         process_name = 'Main Strategy'
         for each_key in instruments_df_dict:
             try:
-                print(f"Doing {each_key} : {instruments_df_dict[each_key]['tradingsymbol']}")
+                # print(f"Doing {each_key} : {instruments_df_dict[each_key]['tradingsymbol']}")
                 this_instrument = instruments_df_dict[each_key]
                 ltp = main_broker.latest_ltp[this_instrument['instrument_token']]['ltp']
 
@@ -566,10 +571,28 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                     else:
                         price_trend_bearish = 1
                         price_trend_bullish = 1
+                    # print all values for debugging, TODO: remove this later
+                    print(f"""
+                    {price_above_trend_bullish=}
+                    {price_trend_bullish=}
+                    {ma_trend_bullish=}
+                    {vwap_trend_bullish=}
+                    {atr_trend_bullish=}""")
 
-                    print(
-                        f"{price_above_trend_bearish} and {price_trend_bearish} and {ma_trend_bearish} and {vwap_trend_bearish} and {atr_trend_bearish} and {this_instrument['multiplier']} != -1 and {this_instrument['transaction_type']} == 'SELL'")
-                    if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and vwap_trend_bullish and atr_trend_bullish and \
+                    print(f"""
+{price_above_trend_bearish=}
+{price_trend_bearish=}
+{ma_trend_bearish=}
+{vwap_trend_bearish=}
+{atr_trend_bearish=}
+{this_instrument['multiplier']=} != -1
+{this_instrument['transaction_type']=} == 'SELL'""")
+                    # print(f"{price_above_trend_bearish=}{price_trend_bearish=}{ma_trend_bearish=}"
+                    #       f"{vwap_trend_bearish=}{atr_trend_bearish=}"
+                    #       f"{this_instrument['multiplier']} != -1"
+                    #       f"{this_instrument['transaction_type']} == 'SELL'")
+                    if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and \
+                            vwap_trend_bullish and atr_trend_bullish and \
                             this_instrument['multiplier'] != 1 and this_instrument['transaction_type'] == 'BUY':
                         logger.info(f" In Buy Loop. for {this_instrument['tradingsymbol']}\n"
                                     f"Buy Signal has been Activated for {this_instrument['tradingsymbol']}")
@@ -735,7 +758,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                                 this_user_order_details = this_instrument['entry_order_ids'][each_user]
                                 broker = this_user_order_details['broker']
                                 order_id = this_user_order_details['order_id']
-                                # ipdb.set_trace()
                                 main_order = this_instrument['order']
                                 order_status, status_message = broker.get_order_status(order_id=order_id)
                                 this_user_order_details['order_status'] = order_status

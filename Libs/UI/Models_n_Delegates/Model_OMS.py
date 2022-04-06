@@ -1,3 +1,4 @@
+from datetime import datetime
 from copy import deepcopy
 import multiprocessing
 import typing
@@ -5,6 +6,10 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
 from Libs.Storage import app_data
+from Libs.Utils.exception_handler import getFutureLogger
+
+checklist = ("executed", "placed", "complete", "open")
+logger = getFutureLogger(__name__)
 
 
 class ButtonDelegate(QtWidgets.QStyledItemDelegate):
@@ -21,8 +26,7 @@ class ButtonDelegate(QtWidgets.QStyledItemDelegate):
         row, col = index.row(), index.column()
         __status_index = __model.index(row, app_data.OMS_TABLE_COLUMNS.index("Order Status"))
         status = __model.data(__status_index) or ""
-        if col == app_data.OMS_TABLE_COLUMNS.index("Close Position?") and status.lower() in ("executed", "placed",
-                                                                                             "complete", "open"):
+        if col == app_data.OMS_TABLE_COLUMNS.index("Close Position?") and any((x in status.lower() for x in checklist)):
             self.parent().openPersistentEditor(index)
         super().paint(painter, option, index)
 
@@ -44,7 +48,7 @@ class ButtonDelegate(QtWidgets.QStyledItemDelegate):
         if index.column() == app_data.OMS_TABLE_COLUMNS.index("Close Position?"):
             self._is_clicked_dict.clear()
             status_value = __model.data(__status_index) or ""
-            if status_value.lowe() in ("executed", "placed", "complete", "open"):
+            if any((x in status_value.lower() for x in checklist)):
                 editor.setEnabled(True)
             else:
                 editor.setEnabled(False)
@@ -53,7 +57,7 @@ class ButtonDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor: QtWidgets.QWidget, model: QtCore.QAbstractItemModel, index: QtCore.QModelIndex):
         close_position = 1 if self._is_clicked_dict.get(index.row()) else 0
         # editor.setDisabled(True)  # disable the button (close position press one time only)
-        model.setData(index, close_position)  # entry point for user-algo interaction
+        model.setData(index, close_position, role=Qt.EditRole)  # entry point for user-algo interaction
 
     def updateEditorGeometry(self, editor: QtWidgets.QWidget, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex):
         editor.setGeometry(option.rect)
@@ -90,7 +94,7 @@ class OMSModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self.header_labels)
 
-    def populate(self, data_dict: typing.Dict[str, typing.Dict[str, typing.Any]]):
+    def populate(self, data_dict: typing.Dict[str, typing.List[typing.Any]]):
         if self.__data != data_dict:
             self.beginResetModel()
             del self.__data
@@ -117,6 +121,8 @@ class OMSModel(QtCore.QAbstractTableModel):
             return False
         col_name = self.header_labels[index.column()]
         if role == Qt.EditRole and col_name in ("Close Position?",):
+            if value == 1:
+                logger.info(f"Close Requested for row: {index.row()} [{datetime.now()}]")
             self.__data[col_name][index.row()] = value
             self.dataChanged.emit(index, index)
             return True
@@ -127,7 +133,7 @@ class OMSModel(QtCore.QAbstractTableModel):
         # if col_name in ("Stoploss", "Target", "MODIFY", "Close Position?"):
         if col_name in ("Close Position?",):
             order_status = self.__data["Order Status"][index.row()]
-            if order_status and order_status.lower() in ("executed", "placed", "complete", "open"):
+            if order_status and any((x in order_status.lower() for x in checklist)):
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 

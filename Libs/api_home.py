@@ -319,7 +319,7 @@ class ApiHome(QtWidgets.QMainWindow):
         self.stop_trading()
         logger.info("Strategy algorithm Stopped successfully")
 
-    def update_orderbook_data(self, data: typing.Dict[str, typing.Dict[str, typing.Any]]):
+    def update_orderbook_data(self, data: typing.Dict[str, typing.List[typing.Any]]):
         """Updates orderbook data"""
         self.oms_view.update_data(data)  # reset the model data with new data
         self.oms_view.update()  # update the view
@@ -342,6 +342,8 @@ class ApiHome(QtWidgets.QMainWindow):
         trading_mode_text = self.ui.comboBox_trading_mode.currentText()
         trading_mode_index = settings.TRADING_NAME_INDEX_MAPPING[trading_mode_text]
         if trading_mode_index in (0, 1):  # Need to run MainManager script
+            if self.strategy_algorithm_object is not None:
+                self.strategy_algorithm_object.kill_child_proc()
             self.strategy_algorithm_object = AlgoManager()
             self.oms_view.set_cancel_order_queue(self.strategy_algorithm_object.get_cancel_order_queue())
             self.strategy_algorithm_object.error_stop.connect(self.error_stop_trade_algorithm)
@@ -598,10 +600,21 @@ class ApiHome(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def save_error_logs(self):
+        def copy_log_text_to_file(file_path: str):
+            log_files = [exception_handler.f_future_logger, exception_handler.f_algo_logger]
+            with open(file_path, 'a') as writer:
+                for log_file in log_files:
+                    # read log file
+                    with open(log_file, 'r') as reader:
+                        log_text = reader.read()
+                    writer.write(f'----({os.path.basename(log_file)})----\n')
+                    writer.write(log_text)
+        # --------------------------------------------------
         try:
             time_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            path = handle__SaveOpen.save_file(self, "Export Program Logs", f'ProgramLogs_{time_string}.txt', "TEXT (*.txt)")
-            self.tableView_logs.save_data(path)  # path validity checking done inside this function
+            path = handle__SaveOpen.save_file(self, "Export Program Logs", f'ProgramLogs_{time_string}.txt',
+                                              "TEXT (*.txt)")
+            threading.Thread(target=copy_log_text_to_file, args=(path,)).start()
         except Exception as e:
             logger.warning(f"Error saving file: {e.__str__()}")
 
@@ -615,7 +628,7 @@ class ApiHome(QtWidgets.QMainWindow):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if event.spontaneous():
             self.pause_stylesheet_timer = True
-            messageButton = QtWidgets.QMessageBox().question(self, "close window",
+            messageButton = QtWidgets.QMessageBox().question(self, "Confirm Close",
                                                              "Are you sure you want to close the application?",
                                                              QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
                                                              QtWidgets.QMessageBox.Yes)
