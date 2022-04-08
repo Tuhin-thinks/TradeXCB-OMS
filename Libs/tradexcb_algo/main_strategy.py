@@ -1,19 +1,20 @@
-import warnings
 import multiprocessing
 import os
 import sys
 import time
 import typing
+import warnings
 from datetime import datetime, timedelta
 
 import numpy as np
 import openpyxl
 import pandas as pd
 import talib
-# import ipdb
-from Libs.Storage import app_data
+
 from Libs.Files import handle_user_details
 from Libs.Files.TradingSymbolMapping import StrategiesColumn
+# import ipdb
+from Libs.Storage import app_data
 from Libs.Utils import settings, exception_handler
 from .TA_Lib import HA
 from .main_broker_api import All_Broker
@@ -587,10 +588,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
 {atr_trend_bearish=}
 {this_instrument['multiplier']=} != -1
 {this_instrument['transaction_type']=} == 'SELL'""")
-                    # print(f"{price_above_trend_bearish=}{price_trend_bearish=}{ma_trend_bearish=}"
-                    #       f"{vwap_trend_bearish=}{atr_trend_bearish=}"
-                    #       f"{this_instrument['multiplier']} != -1"
-                    #       f"{this_instrument['transaction_type']} == 'SELL'")
                     if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and \
                             vwap_trend_bullish and atr_trend_bullish and \
                             this_instrument['multiplier'] != 1 and this_instrument['transaction_type'] == 'BUY':
@@ -974,6 +971,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['Row_Type'] = 'T'
 
                     if this_instrument['close_positions'] == 1:
+                        logger.info(f"Close position request received for: {this_instrument['tradingsymbol']}")
 
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
@@ -984,8 +982,9 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                             try:
                                 this_user = users_df_dict[user_dict_row]
                                 order_id = this_instrument['exit_order_ids'][user_dict_row]['order_id']
-                                order_status = this_user['broker'].get_order_status(order_id)
+                                order_status, messsage = this_user['broker'].get_order_status(order_id)
                                 this_instrument['exit_order_ids'][user_dict_row]['order_status'] = order_status
+                                print(f"{order_status=='PENDING'=} [{order_status}]")  # TODO: Remove this
                                 if order_status == 'PENDING':
                                     this_user['broker'].cancel_order(order_id)
                                     order = {'variety': 'regular',

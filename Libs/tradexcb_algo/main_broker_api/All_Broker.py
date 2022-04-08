@@ -1,3 +1,4 @@
+import re
 import datetime
 import json
 import os
@@ -8,6 +9,7 @@ import urllib.parse as urlparse
 
 import onetimepass as otp
 import pandas as pd
+import pyotp
 import requests
 # Alice Blue
 from alice_blue import *
@@ -47,6 +49,7 @@ class All_Broker(main_broker.Broker):
         """
 
         super().__init__(**kwargs)
+        self.enctoken = None
         self.broker = None
         self.logger = self.get_logger(f"USER_{self.all_data_kwargs[Allcols.username.value]}")
         self.refreshtoken = None
@@ -208,16 +211,20 @@ class All_Broker(main_broker.Broker):
                                           'password': password})
                 data = json.loads(res1.text)
                 # print("Data", data)
+                authenticator_totp = pyotp.TOTP(totp_code)
                 res2 = session.post("https://kite.zerodha.com/api/twofa",
                                     data={'user_id': username,
                                           'request_id': data['data']["request_id"],
-                                          'twofa_value': str(otp.get_totp(totp_code))})
+                                          'twofa_value': authenticator_totp.now()})
                 print(res0.url + "&skip_session=true")
                 try:
                     res = session.get(res0.url + "&skip_session=true")
                     print(res.url)
                     parsed = urlparse.urlparse(res.history[1].headers['location'])
                     request_token = urlparse.parse_qs(parsed.query)['request_token'][0]
+                    header_string = res2.headers['Set-Cookie']
+                    pattern = r"enctoken=(?P<token>.+?)\;"
+                    self.enctoken = re.search(pattern, header_string).groupdict()['token']
                 except Exception as e:
                     self.log_this(f"Error in getting request token for {username} Broker {self.broker_name}",
                                   log_level="error")
@@ -545,7 +552,6 @@ For alice blue:
                 self.log_this(error_message)
                 self.log_this(f"{str(sys.exc_info())}")
 
-
         elif self.broker_name.lower() == 'alice blue':
             try:
                 orders = self.broker.get_order_history()
@@ -631,12 +637,15 @@ For alice blue:
 
     def get_data(self, instrument_token, timeframe: str, timeframesuffix: str, from_dt: datetime.datetime,
                  to_dt: datetime.datetime):
-        '''
+        """
 
-        :param instrument_name:
+        :param instrument_token:
         :param timeframe:
+        :param timeframesuffix:
+        :param from_dt:
+        :param to_dt:
         :return: DataFrame
-        '''
+        """
         df = pd.DataFrame()
         message = None
         error_message = 'Error in getting data'
@@ -659,6 +668,34 @@ For alice blue:
                 message = 'success'
             except Exception as e:
                 self.logger.critical(f"Error is getting data: {str(e)}", exc_info=True)
+
+            # try:
+            #     auth_val = f'enctoken {self.enctoken}'
+            #
+            #     head_rs = {
+            #         'authorization': auth_val,
+            #         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
+            #         'Accept': '*/*'
+            #     }
+            #     if str(period) == '1':
+            #         period = ''
+            #     url = f'https://kite.zerodha.com/oms/instruments/historical/{inst_token}/{period}{time_frame}' \
+            #           f'?user_id={self.["user_name"]}&oi=1&from={from_dt}&to={to_dt}'
+            #     resp = requests.get(url, headers=head_rs)
+            #     if resp.status_code == 200:
+            #         data = resp.json()
+            #         if data['status'] == "success":
+            #             ohlc = data['data']['candles']
+            #             if len(ohlc) > 0:
+            #                 df = pd.DataFrame(ohlc, columns=['time', 'open', 'high', 'low', 'close', 'volume', 'oi'])
+            #                 df['time'] = df['time'].astype(str).str[:19]
+            #                 df['time'] = pd.to_datetime(df['time'], format='%Y-%m-%d %H:%M:%S')
+            #                 return df
+            #     else:
+            #         return None
+            #
+            # except Exception as ex:
+            #     logger.exception(f"Error occured during get data, {ex.__str__()}", exc_info=True)
 
         elif self.broker_name.lower() == 'iifl':
             # instrument_iifl_row = iifl_helper.get_symbol_from_token(instrument_row.iloc[-1]['exchange_token'],instrument_row.iloc[-1]['exchange'])
