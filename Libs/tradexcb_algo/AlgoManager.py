@@ -79,6 +79,10 @@ class AlgoManager(QtCore.QObject):
         self.algo_process.start()
         self.start_algo_monitor()
 
+    def activate_update_rows(self):
+        """setting this to 1 will load all rows from Excel file again"""
+        self.manager_dict['update_rows'] = 1
+
     def stop_algo(self):
         self.manager_dict['force_stop'] = True  # activate force-stop, it'll stop the algo in the next iteration
 
@@ -106,3 +110,7 @@ class AlgoManager(QtCore.QObject):
             orderbook_data = self.manager_dict.get('orderbook_data')
             if isinstance(orderbook_data, dict):
                 self.orderbook_data.emit(orderbook_data)
+
+    @property
+    def is_running(self):
+        return self.algo_process.is_alive()

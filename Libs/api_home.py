@@ -163,7 +163,19 @@ class ApiHome(QtWidgets.QMainWindow):
     # ======================= EXPORT SLOTS =================================
     @QtCore.pyqtSlot()
     def save_strategies(self):
-        handle__SaveOpen.export_as_excel(self)
+        save_flag = True
+        if self.strategy_algorithm_object is not None and self.strategy_algorithm_object.is_running:
+            save_flag = False
+            # show message box
+            response = Interact.show_message(self, "Noter", "<b>Algorithm is running. If you save the strategy,"
+                                                            " it will be loaded into the currently running process.</b>"
+                                                            "<br><h3>Do you want to continue?</h3>", mode="question")
+            if response == QtWidgets.QMessageBox.Yes:
+                save_flag = True
+                self.strategy_algorithm_object.activate_update_rows()
+
+        if save_flag:
+            handle__SaveOpen.export_as_excel(self)
 
     # ===================== EXPORT SLOTS END =================================
     @staticmethod
