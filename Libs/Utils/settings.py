@@ -13,6 +13,7 @@ LOG_FILE_DIR = os.path.realpath(os.path.join("Libs", "Logs"))
 LOG_EXPIRY_DURATION = 1  # in days
 TABLE_FONT_SIZE = 8
 HEADER_VIEW_FONT = TABLE_FONT_SIZE
+MAX_LOT_SIZE_ANY_INSTRUMENT = 1000
 LOG_MATCHER_REGEX = r"(?P<timestamp>.*) \*\*\* (?P<log>.*) \*\*\* (?P<message>.*) \*\*\* (?P<source>.*)"
 USER_SETTINGS_JSON = os.path.realpath("user_details.json")
 DEFAULT_DATA_FILE = os.path.realpath(os.path.join("Libs", "Storage", "DEFAULT_VALUES.json"))
@@ -26,7 +27,8 @@ DATA_FILES = {
     "tradexcb_excel_file": os.path.join(DATA_FILES_DIR, "tradexcb_strategy.xlsx"),
     "POSITIONS_FILE_PATH": os.path.join(DATA_FILES_DIR, "PNLATRTS_All_User.csv"),
     "INSTRUMENTS_CSV": os.path.join(DATA_FILES_DIR, "Instruments.csv"),
-    "symbols_mapping_csv": os.path.join(DATA_FILES_DIR, "SYMBOL_MAPPING.csv")
+    "symbols_mapping_csv": os.path.join(DATA_FILES_DIR, "SYMBOL_MAPPING.csv"),
+    "QTY_FREEZE_LIMIT_CSV": os.path.join(DATA_FILES_DIR, "QTY_FREEZE_LIMIT.csv"),
 }
 TRADING_NAME_INDEX_MAPPING = {
     "Real Live Trading": 0,

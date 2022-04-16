@@ -13,14 +13,13 @@ class API_Det_TableView(QtWidgets.QTableView):
         super(API_Det_TableView, self).__init__()
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        # self.setAlternatingRowColors(True)
-        # self.setSortingEnabled(True)
         self._model = Model__API_Det.Model_API_Det(parent=None, data=None)
         self.setModel(self._model)
         self.setItemDelegate(Model__API_Det.Delegate_API_Det(parent=self))
-        self.resizeColumnsToContents()
-
+        self.setItemDelegateForColumn(app_data.API_DETAILS_COLUMNS.index('Slices'),
+                                      Model__API_Det.Delegate_Slices(parent=self))
         self.setItemDelegateForColumn(1, Model__API_Det.Delegate_Broker_Type(parent=self))
+        self.resizeColumnsToContents()
 
     def resizeEvent(self, e: QtGui.QResizeEvent) -> None:
         self.increase_col_space()

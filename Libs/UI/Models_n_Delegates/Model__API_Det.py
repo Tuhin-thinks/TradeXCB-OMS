@@ -3,7 +3,46 @@ import typing
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt
 
+from Libs.Utils import settings
 from Libs.Storage import app_data
+
+
+class Delegate_Slices(QtWidgets.QStyledItemDelegate):
+    def __init__(self, parent: QtWidgets.QTableView):
+        super(Delegate_Slices, self).__init__(parent)
+
+    def createEditor(self, parent: QtWidgets.QWidget, option: 'QtWidgets.QStyleOptionViewItem',
+                     index: QtCore.QModelIndex) -> QtWidgets.QWidget:
+        editor = QtWidgets.QSpinBox(parent)
+        editor.setMinimum(1)
+        editor.setMaximum(settings.MAX_LOT_SIZE_ANY_INSTRUMENT)
+        editor_data = index.data(Qt.EditRole)
+        if isinstance(editor_data, int):
+            editor.setValue(editor_data)
+        elif isinstance(editor_data, str) and editor_data.isdigit():
+            editor.setValue(int(editor_data))
+        editor.editingFinished.connect(self.commit_editor)
+        return editor
+
+    def setEditorData(self, editor: QtWidgets.QWidget, index: QtCore.QModelIndex) -> None:
+        editor_data = index.data(Qt.EditRole)
+        if isinstance(editor_data, int):
+            editor.setValue(editor_data)
+        elif isinstance(editor_data, str) and editor_data.isdigit():
+            editor.setValue(int(editor_data))
+
+    def setModelData(self, editor: QtWidgets.QSpinBox, model: QtCore.QAbstractItemModel,
+                     index: QtCore.QModelIndex) -> None:
+        value = editor.value()
+        model.setData(index, value, QtCore.Qt.EditRole)
+
+    def updateEditorGeometry(self, editor: QtWidgets.QWidget, option: 'QtWidgets.QStyleOptionViewItem',
+                             index: QtCore.QModelIndex) -> None:
+        editor.setGeometry(option.rect)
+
+    def commit_editor(self) -> None:
+        editor = self.sender()
+        self.commitData.emit(editor)
 
 
 class Delegate_API_Det(QtWidgets.QStyledItemDelegate):
@@ -45,7 +84,6 @@ class Delegate_Broker_Type(QtWidgets.QStyledItemDelegate):
         # create lineEdit as editor
         editor = QtWidgets.QComboBox(parent)
         if index.row() == 0:
-            # self.choices = ["Zerodha", "IIFL"]
             editor.addItems(["Zerodha", "IIFL"])
         else:
             editor.addItems(self.choices)
@@ -89,7 +127,7 @@ class Model_API_Det(QtCore.QAbstractTableModel):
                 item = self.data_list[index.row()][index.column()]
                 if item is None:
                     return None
-                elif index.column() not in (0, 1, self.header_labels.index("No of Lots")):
+                elif index.column() not in (0, 1, self.header_labels.index("No of Lots"), self.header_labels.index("Slices")):
                     return "*" * len(item)
                 else:
                     return item

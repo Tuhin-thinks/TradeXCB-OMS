@@ -70,7 +70,7 @@ POSITIONS_COLUMNS = ['user_id', 'tradingsymbol', 'exchange', 'quantity', 'timefr
                      'Trend']
 
 API_DETAILS_COLUMNS = ['Name', 'Stock Broker Name', 'apiKey', 'apiSecret', 'accountUserName', 'accountPassword',
-                       'securityPin', 'totp_secret', 'No of Lots', 'consumerKey', 'accessToken', 'host', 'source',
+                       'securityPin', 'totp_secret', 'No of Lots', "Slices", 'consumerKey', 'accessToken', 'host', 'source',
                        'market_appkey', 'market_secretkey']
 
 OMS_TABLE_COLUMNS = ["Instrument", "Entry Price", "Entry Time", "Exit Price", "Exit Time", "Order Type", "Quantity",

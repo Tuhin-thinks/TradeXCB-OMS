@@ -1,3 +1,2 @@
-,tradingsymbol,exchange,quantity,timeframe,multiplier,entry_price,entry_time,exit_price,exit_time,target_price,sl_price,Row_Type,profit,ltp,Trend,user_id
-0,NIFTY2241318000CE,NFO,50,1,1,13.1,2022-04-11 15:17:28.597971,13.2,2022-04-11 15:17:30.487530,8.05,10.05,F,4.999999999999982,13.2,BUY,MH0069
-1,NIFTY2241318000CE,NFO,50,1,1,13.1,2022-04-11 15:17:28.597971,13.2,2022-04-11 15:17:30.487530,8.05,10.05,F,4.999999999999982,13.2,BUY,MJ0724
+user_id,tradingsymbol,exchange,quantity,timeframe,entry_price,entry_time,exit_price,exit_time,target_price,sl_price,Row_Type,profit,ltp,Trend
+Yash account,NIFTY2242117500CE,NFO,1000,1,136.05,2022-04-14 14:02:20.190847,,,141.05,133.05,T,60.99999999999966,139.1,BUY

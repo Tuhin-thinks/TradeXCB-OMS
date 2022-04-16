@@ -11,9 +11,9 @@ from Libs.UI import Interact, user_login
 from Libs.UI.CustomWidgets import (email_input_widget, security_question_widget, reset_password_dialog,
                                    DisclaimerDialog)
 from Libs.UI.Utils import field_validator
-from Libs.api_home import ApiHome
 from Libs.globals import *
 from Libs.icons_lib import Icons
+from Libs.Utils.config import prepare_files
 
 BASE_DIR = os.path.dirname(__file__)
 ICONS_DIR = os.path.join(BASE_DIR, 'Libs', 'UI', 'icons')
@@ -98,6 +98,12 @@ class LoginWindow(QMainWindow):
             phone = user_d_dict.get('phone')
             self.ui.pushButton_forgotPasswd.setDisabled(True)
             self.fill_data(user_name, password_dec, f_name, l_name, email_id, phone)
+
+        self.launch_utility_processes()
+
+    @staticmethod
+    def launch_utility_processes():
+        process = multiprocessing.Process(target=prepare_files).start()
 
     def fill_data(self, user_name, password_dec, f_name, l_name, email_id, phone):
         args = (user_name, password_dec, f_name, l_name, email_id, phone)
@@ -551,6 +557,7 @@ class LoginWindow(QMainWindow):
         """
         :return: None
         """
+        from Libs.api_home import ApiHome
         self.home_window = ApiHome(self.geometry())
         self.home_window.window_closed.connect(self.update_logout_time)
         self.home_window.show()

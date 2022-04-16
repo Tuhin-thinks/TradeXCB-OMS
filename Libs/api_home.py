@@ -17,7 +17,6 @@ from Libs.UI.Utils import widget_handling
 from Libs.UI.custom_style_sheet import CustomStyleSheet
 from Libs.Utils import calculations, config
 from Libs.globals import *
-from Libs.tradexcb_algo.AlgoManager import AlgoManager
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -37,7 +36,7 @@ class ApiHome(QtWidgets.QMainWindow):
         self.multi_client_view: typing.Union[None, 'API_Det_TableView.API_Det_TableView'] = None
         self._notif_timer = None
         self.notifications_downloading = False
-        self.strategy_algorithm_object: typing.Union[None, AlgoManager] = None
+        self.strategy_algorithm_object: typing.Union[None, 'AlgoManager'] = None
         self.oi_data_refreshing = False
         self.style_refresh_timer = None
         self.strategy_algo_runner_thread = None
@@ -52,11 +51,12 @@ class ApiHome(QtWidgets.QMainWindow):
         self.ui.frame_trade_buttons.sizePolicy().setRetainSizeWhenHidden(True)
 
         # -------------- some explicit value settings -----------------
-        self.ui.pushButton_recal_oi_timer.setText("Refresh")
+        config.set_quantity_freeze_limits()  # save quantity freeze limits to sqlite3
         self.setWindowTitle(f"{settings.APP_NAME} {settings.App_VERSION} {settings.EXTENSION}")
         self.ui.label_app_logo.setPixmap(icons_lib.Icons.get_pixmap("tradexcb_logo"))  # top logo
         self.ui.label_app_logo.setMaximumSize(90, 90)
         self.ui.label_app_logo.setMinimumSize(90, 90)
+        self.ui.pushButton_recal_oi_timer.setText("Refresh")
         self.ui.pushButton_recal_oi_timer.setIcon(icons_lib.Icons.get("restart-icon-white"))
         self.ui.pushButton_recal_oi_timer.setIconSize(QtCore.QSize(24, 24))
         self.ui.pushButton_start_trading.setIcon(QtGui.QIcon(icons_lib.Icons().get("start-trading-button")))
@@ -341,6 +341,7 @@ class ApiHome(QtWidgets.QMainWindow):
         ------------ start strategy trading algorithm ---------------
         :return:
         """
+        from Libs.tradexcb_algo.AlgoManager import AlgoManager
         trading_mode_index = self.ui.comboBox_trading_mode.currentIndex()
         if trading_mode_index == 0:
             Interact.show_message(self, "Trading Mode Not Selected",

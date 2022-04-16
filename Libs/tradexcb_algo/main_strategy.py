@@ -1,3 +1,5 @@
+import json
+import math
 import multiprocessing
 import os
 import sys
@@ -14,7 +16,7 @@ import talib
 from Libs.Files import handle_user_details
 from Libs.Files.TradingSymbolMapping import StrategiesColumn
 # import ipdb
-from Libs.Storage import app_data
+from Libs.Storage import app_data, manage_local
 from Libs.Utils import settings, exception_handler
 from .TA_Lib import HA
 from .main_broker_api.All_Broker import All_Broker
@@ -202,8 +204,140 @@ def SuperTrend(df, period, multiplier, ohlc=['Open', 'High', 'Low', 'Close']):
         logger.error(f'Error in SuperTrend Calculation {sys.exc_info()}', exc_info=True)
 
 
-def do_assertion(name, variable):
-    assert variable is not None, f"Variable {name} is None"
+# ------------ order management -----------------
+def place_orders(order_dict: typing.Dict, freeze_limits_dict: typing.Dict, symbol_name: str,
+                 this_user: typing.Dict, order_type_str: str):
+    """Place orders with lots more than allowed in lots freeze limit
+    This function is called inside a loop to place orders for multiple users.
+
+    :param order_type_str:
+    :param order_dict: dictionary of order parameters
+    :param freeze_limits_dict: allowed freeze limits from db
+    :param symbol_name: symbol name (instruments.csv > name) to check freeze limits
+    :param this_user: current user
+
+    :return: typing.Optional[typing.Any]
+    """
+    lots_to_exec = int(this_user['No of Lots'])
+    n_slices = this_user['Slices']  # this has to be in <'str'> or NoneType value
+    freeze_limit: int = freeze_limits_dict[symbol_name]
+    if isinstance(n_slices, str) and n_slices.isdigit() and int(n_slices) > 0:
+        n_slices = int(n_slices)
+        if lots_to_exec >= n_slices:
+            ind_slice_size = math.floor(lots_to_exec / n_slices)
+        else:
+            ind_slice_size = math.ceil(freeze_limit / n_slices)
+    else:
+        n_slices = math.ceil(lots_to_exec / (freeze_limit - 1))
+        ind_slice_size = freeze_limit - 1
+    if lots_to_exec // n_slices >= freeze_limit:
+        n_slices = math.ceil(lots_to_exec / (freeze_limit - 1))
+        ind_slice_size = freeze_limit - 1
+    order_details_list = []
+    for i in range(n_slices):
+        new_order = dict(order_dict)
+        if ind_slice_size <= lots_to_exec and i < n_slices - 1:
+            new_order['quantity'] = new_order['quantity'] * ind_slice_size
+            lots_to_exec -= ind_slice_size
+        elif lots_to_exec > 0:
+            new_order['quantity'] = new_order['quantity'] * lots_to_exec
+            lots_to_exec = 0
+        if i == (n_slices - 1) and lots_to_exec != 0:  # last iteration
+            new_order['quantity'] = new_order['quantity'] * lots_to_exec
+            lots_to_exec = 0
+
+        logger.debug(f"Order details: {new_order} :: place_order")
+        order_id, message = this_user['broker'].place_order(**new_order)
+        if order_id:
+            order_details_list.append({"order_id": order_id,
+                                       "order": new_order,
+                                       "quantity": new_order['quantity'],
+                                       "status": "OPEN",
+                                       "message": message})
+            logger.info(f"{this_user['Name']} : {order_type_str} Order Placed, Order ID: {order_id}")
+        else:
+            logger.error(f"{this_user['Name']} : {order_type_str} Order Placement Failed, message: {message}")
+    return order_details_list
+
+
+def place_market_orders(order_dict: typing.Dict, this_user: typing.Dict, order_details_list: typing.List[typing.Dict]):
+    """
+    Place market order.
+
+    :param order_details_list: list of order details
+    :param order_dict:
+    :param this_user:
+    :return:
+    """
+    broker = this_user['broker']
+
+    new_order_details_list = []
+
+    # iterate on orders
+    for order_details in order_details_list:
+        order_id = order_details['order_id']
+
+        # ---- get order status ----
+        order_status, status_message = broker.get_order_status(order_id=order_id)
+        order_details['status'] = order_status
+        order_details['message'] = status_message
+        if order_status == "COMPLETE":
+            continue
+        elif order_status == "REJECTED":
+            logger.info(f"Order Rejected for {this_user['Name']} Order_id {order_id}")
+        else:
+            broker.cancel_order(order_id=order_id)
+            order_dict['order_type'] = 'MARKET'
+            order_dict['price'] = None
+            new_order = dict(order_dict)
+            new_order['quantity'] = order_details['quantity']  # use quantity from previous order (place order)
+            logger.debug(f"Order details: {new_order} :: place_market_orders")
+            order_id, message = broker.place_order(**new_order)
+            if order_id:
+                new_order_details_list.append({"order_id": order_id,
+                                               "order": new_order,
+                                               "quantity": new_order['quantity'],
+                                               "status": "OPEN",
+                                               "message": message})
+                logger.info(f"{this_user['Name']}: Market Order Placed, Order_id:{order_id}")
+            else:
+                logger.error(f"{this_user['Name']}: Market Order Placement Failed, Order_id:{order_id}")
+    return new_order_details_list
+
+
+def place_close_orders(order_dict: typing.Dict, this_user: typing.Dict, order_details_list: typing.List[typing.Dict]):
+    """
+    Place close order.
+
+    :param order_details_list:
+    :param order_dict:
+    :param this_user:
+    :return:
+    """
+    broker = this_user['broker']
+    for index, order_details in enumerate(order_details_list):
+        order_id = order_details['order_id']
+        order_status, status_message = broker.get_order_status(order_id=order_id)
+        order_details_list[index]['status'] = order_status
+        order_details_list[index]['message'] = status_message
+        if order_status == "COMPLETE":
+            broker.cancel_order(order_id=order_id)
+        elif order_status == "PENDING":
+            broker.cancel_order(order_id=order_id)
+            new_order_dict = dict(order_dict)
+            new_order_dict['quantity'] = order_details['quantity']
+            logger.debug(f"Order details: {new_order_dict} :: place_close_orders")
+            order_id, message = broker.place_order(**new_order_dict)
+            if order_id:
+                order_details_list[index]['order_id'] = order_id
+                order_details_list[index]['order'] = new_order_dict
+                order_details_list[index]['status'] = "OPEN"
+                order_details_list[index]['message'] = message
+                logger.info(f"{this_user['Name']}: Close Order Placed, Order_id:{order_id}")
+            else:
+                logger.error(f"{this_user['Name']}: Close Order Placement Failed, Order_id:{order_id}")
+
+    return order_details_list
 
 
 # ------------ function to add new rows in run-time ------------
@@ -242,9 +376,11 @@ def add_rows(old_instruments_df_dict, main_broker, users_df_dict,
     for each_instrument in instruments_df_dict:
         this_instrument = instruments_df_dict[each_instrument]
         this_instrument['entry_order_ids'] = {
-            x: {'order_id': None, 'order_status': None, 'broker': users_df_dict[x]['broker']} for x in users_df_dict}
+            each_user: {"order_details_list": [],
+                        'broker': users_df_dict[each_user]['broker']} for each_user in users_df_dict}
         this_instrument['exit_order_ids'] = {
-            x: {'order_id': None, 'order_status': None, 'broker': users_df_dict[x]['broker']} for x in users_df_dict}
+            each_user: {"order_details_list": [],
+                        "broker": users_df_dict[each_user]['broker']} for each_user in users_df_dict}
 
         row = All_Broker.instrument_df[
             (All_Broker.instrument_df['tradingsymbol'] == this_instrument['instrument'])]
@@ -300,12 +436,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
     """
     # Variables
     paper_trade = manager_dict['paper_trade']
-    users_df_dict = None
-    main_broker: typing.Union[None, All_Broker] = None
-    users_df = None
-    instruments_df: typing.Union[None, pd.DataFrame] = None
-    # instruments_df_dict = None
-
     # DO login for All users
     process_name = 'User Login Process'
     try:
@@ -361,19 +491,13 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         manager_dict['algo_running'] = False
         manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}, {e.__str__()}"
         return
-    # try:
-    #     main_broker.get_live_ticks()
-    #     logger.debug("Getting Live Ticks")
-    # except Exception:
-    #     logger.critical(f"Error in Getting Live Ticks. Error : {sys.exc_info()} ", exc_info=True)
-    #     manager_dict['algo_error'] = f"Error in Getting Live Ticks. Error : {sys.exc_info()}"
-    #     manager_dict['algo_running'] = False
-    #     return
     logger.info(f"Starting Strategy")
     final_df = pd.DataFrame(columns=list(instruments_df.columns) + ['ltp', 'tradingsymbol'])
-    # main_broker : All_Broker.All_Broker
-    # del users_df_dict[0]
+
     logger.info(f"{main_broker.latest_ltp}")
+    # load freeze limits from database
+    freeze_limits_dict: typing.Dict[str, typing.Dict] = json.loads(
+        manage_local.get_user_preference_table("freeze_limits"))
 
     while manager_dict['force_stop'] is False:
         time.sleep(1)  # wait for 1 second/iteration
@@ -388,34 +512,35 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         if datetime.now() < nine_sixteen:
             continue
 
-        final_df = final_df[
-            ['tradingsymbol', 'exchange', 'quantity', 'timeframe', 'multiplier', 'entry_price', 'entry_time',
-             'exit_price', 'exit_time'
-                , 'target_price', 'sl_price', 'Row_Type', 'profit', 'ltp']]
+        _cols = ['tradingsymbol', 'exchange', 'quantity', 'timeframe', 'multiplier', 'entry_price', 'ltp',
+                 'entry_time', 'exit_price', 'exit_time', 'target_price', 'sl_price', 'Row_Type', 'profit']
+        final_df = final_df[_cols]
         final_df['Trend'] = np.where(final_df['multiplier'] == 1, 'BUY', 'SELL')
 
-        final_all_user_df = pd.DataFrame()
-        for each_user in users_df_dict:
-            try:
-                this_user = users_df_dict[each_user]
-                if this_user['broker'] is None:
-                    continue
+        # ------------------ old: create positions from final_df ------------------
+        # final_all_user_df = pd.DataFrame()
+        # for each_user in users_df_dict:
+        #     try:
+        #         this_user = users_df_dict[each_user]
+        #         if this_user['broker'] is None:
+        #             continue
+        #
+        #         no_of_lots = this_user['No of Lots']
+        #         final_df_temp = final_df.copy(deep=True)
+        #         final_df_temp['quantity'] = final_df_temp['quantity'] * no_of_lots
+        #         final_df_temp['profit'] = (final_df_temp['ltp'] - final_df_temp['entry_price']) * final_df_temp[
+        #             'quantity'] * final_df_temp['multiplier']
+        #         final_df_temp['user_id'] = this_user['accountUserName']
+        #         final_all_user_df = final_all_user_df.append(final_df_temp, ignore_index=True)
+        #     except Exception as e:
+        #         logger.critical(f"{sys.exc_info()}", exc_info=True)
+        #         manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+        #         manager_dict['algo_running'] = False
+        #         return
 
-                no_of_lots = this_user['No of Lots']
-                final_df_temp = final_df.copy(deep=True)
-                final_df_temp['quantity'] = final_df_temp['quantity'] * no_of_lots
-                final_df_temp['profit'] = (final_df_temp['ltp'] - final_df_temp['entry_price']) * final_df_temp[
-                    'quantity'] * final_df_temp['multiplier']
-                final_df_temp['user_id'] = this_user['accountUserName']
-                final_all_user_df = final_all_user_df.append(final_df_temp, ignore_index=True)
-            except Exception as e:
-                logger.critical(f"{sys.exc_info()}", exc_info=True)
-                manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
-                manager_dict['algo_running'] = False
-                return
-
-        final_all_user_df.to_csv(
-            settings.DATA_FILES.get('POSITIONS_FILE_PATH'))  # TODO PNL of all users by the lot executed by the user
+        # pnl of all users
+        # final_all_user_df.to_csv(settings.DATA_FILES.get('POSITIONS_FILE_PATH'))
+        # --------------------------- -- -- -- ------------------
 
         order_book_dict = dict()
         for each_user in users_df_dict:
@@ -444,8 +569,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
             except Exception as e:
                 logger.critical(f"Error in Creating Order Book {e.__str__()}", exc_info=True)
 
-        # TODO order_book_dict # This contains Orderbook of all the clients
-        # ------- cannot export broker instance ----------
+        # This contains Orderbook of all the clients
         orderbook_export_data = {x: [] for x in app_data.OMS_TABLE_COLUMNS}
         for each_key in instruments_df_dict:
             row_data = instruments_df_dict[each_key]
@@ -478,8 +602,11 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
             if row_order_details is not None:
                 for each_user, this_user_order_details in row_order_details.items():
                     this_user = users_df_dict[each_user]
-                    _status = this_user_order_details["order_status"]
-                    order_status += f"{this_user['Name']} : {_status}\n"
+                    order_details_list = this_user_order_details["order_details_list"]
+                    for each_order_details in order_details_list:
+                        order_status += f"{this_user['Name']} : {each_order_details['status']}\n"
+                    # _status = this_user_order_details["order_status"]
+                    # order_status += f"{this_user['Name']} : {_status}\n"
 
             orderbook_export_data["Order Status"].append(order_status)
             orderbook_export_data["instrument_df_key"].append(each_key)  # will be used to reference in close positions
@@ -507,7 +634,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                 this_instrument = instruments_df_dict[each_key]
                 this_instrument['transaction_type'] = this_instrument['transaction_type'].upper()
                 ltp = main_broker.latest_ltp[this_instrument['instrument_token']]['ltp']
-
+                this_instrument['ltp'] = ltp
                 if (int((curr_date - nine_fifteen).seconds / 60) % this_instrument['timeframe'] > 0) or (
                         int((curr_date - nine_fifteen).seconds / 60) % this_instrument['timeframe'] == 0 and
                         curr_date.second > 30) and this_instrument['run_done'] == 1:
@@ -537,7 +664,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                     atr_trend_bearish = 0
 
                     if this_instrument['ATRTS'] == 'YES':
-                        logger.info(f"df super trend: {this_instrument['tradingsymbol']}, {df['SUPERTREND'].tail(2)}")  # TODO: Remove this
                         if this_instrument['atrts_signal'] == 'new':
                             atr_trend_bearish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'down') & (
                                     df['SUPERTREND'].tail(2).head(1).values[0] == 'up')) else 0
@@ -625,10 +751,10 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                             {vwap_trend_bullish} and {atr_trend_bullish} and \
                             {this_instrument['multiplier']} != 1 and {this_instrument['transaction_type']} == 'BUY'")
 
-                    logger.info(f"{price_above_trend_bearish} and {price_trend_bearish} and {ma_trend_bearish} and {price_trend_bearish} and {ma_trend_bearish} and\
+                    logger.info(
+                        f"{price_above_trend_bearish} and {price_trend_bearish} and {ma_trend_bearish} and {price_trend_bearish} and {ma_trend_bearish} and\
 {vwap_trend_bearish} and {atr_trend_bearish} and\
 {this_instrument['multiplier']} != -1 and {this_instrument['transaction_type']} == 'SELL'")
-
 
                     if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and \
                             vwap_trend_bullish and atr_trend_bullish and \
@@ -681,11 +807,16 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                             for each_user in users_df_dict:
                                 this_user = users_df_dict[each_user]
                                 try:
-                                    new_order = dict(order)
-                                    new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
-                                    order_id, message = this_user['broker'].place_order(**new_order)
-                                    this_instrument['entry_order_ids'][each_user]['order_id'] = order_id
-                                    logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                    order_details_list = place_orders(order_dict=order,
+                                                                      freeze_limits_dict=freeze_limits_dict,
+                                                                      symbol_name=this_instrument['Symbol Name'],
+                                                                      this_user=this_user,
+                                                                      order_type_str="Sell")
+                                    # new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
+                                    # order_id, message = this_user['broker'].place_order(**new_order)
+                                    this_instrument[
+                                        'entry_order_ids'][each_user]['order_details_list'] = order_details_list
+                                    # logger.info(f"Order Placed for {each_user} Order_id {order_id}")
                                 except:
                                     logger.warning(f"Error in Sell Order Placement for {this_user['Name']}"
                                                    f" Error {sys.exc_info()}", exc_info=True)
@@ -694,7 +825,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
 
                     elif (price_above_trend_bearish and price_trend_bearish and ma_trend_bearish and
                           vwap_trend_bearish and atr_trend_bearish and
-                          this_instrument['multiplier'] != -1 and this_instrument['transaction_type'].upper() == 'SELL'):
+                          this_instrument['multiplier'] != -1 and this_instrument[
+                              'transaction_type'].upper() == 'SELL'):
                         logger.info(f" In Sell Loop. for {this_instrument['tradingsymbol']}")
                         logger.info(f" Sell Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
@@ -747,12 +879,17 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                             for each_user in users_df_dict:
                                 this_user = users_df_dict[each_user]
                                 try:
-
-                                    new_order = dict(order)
-                                    new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
-                                    order_id, message = this_user['broker'].place_order(**new_order)
-                                    this_instrument['entry_order_ids'][each_user]['order_id'] = order_id
-                                    logger.info(f"Sell Order Placed for {each_user} Order_id {order_id}")
+                                    order_details_list = place_orders(order_dict=order,
+                                                                      freeze_limits_dict=freeze_limits_dict,
+                                                                      symbol_name=this_instrument['Symbol Name'],
+                                                                      this_user=this_user,
+                                                                      order_type_str="Sell")
+                                    # new_order = dict(order)
+                                    # new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
+                                    # order_id, message = this_user['broker'].place_order(**new_order)
+                                    this_instrument[
+                                        'entry_order_ids'][each_user]['order_details_list'] = order_details_list
+                                    # logger.info(f"Sell Order Placed for {each_user} Order_id {order_id}")
                                 except:
                                     logger.info(f"Error in Sell Order Placement for {this_user['Name']}"
                                                 f" Error {sys.exc_info()}", exc_info=True)
@@ -790,38 +927,46 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         if (ltp * this_instrument['multiplier']
                                 <= this_instrument['entry_price'] * this_instrument['multiplier']):
                             for each_user in this_instrument['entry_order_ids']:
-                                this_user_order_details = this_instrument['entry_order_ids'][each_user]
-                                broker = this_user_order_details['broker']
-                                order_id = this_user_order_details['order_id']
-                                main_order = this_instrument['order']
-                                order_status, status_message = broker.get_order_status(order_id=order_id)
-                                this_user_order_details['order_status'] = order_status
-                                if order_status == 'COMPLETE':
-                                    continue
-                                elif order_status == 'REJECTED':
-                                    logger.info(f"Order Rejected for {each_user} having Order ID : {order_id}")
-                                    continue
-                                else:
+                                this_user = users_df_dict[each_user]
+                                # this_user_order_details = this_instrument['entry_order_ids'][each_user]
+                                # broker = this_user_order_details['broker']
+                                # order_id = this_user_order_details['order_id']
+                                # main_order = this_instrument['order']
+                                # order_status, status_message = broker.get_order_status(order_id=order_id)
+                                # this_user_order_details['order_status'] = order_status
+                                # if order_status == 'COMPLETE':
+                                #     continue
+                                # elif order_status == 'REJECTED':
+                                #     logger.info(f"Order Rejected for {each_user} having Order ID : {order_id}")
+                                #     continue
+                                # else:
+                                #
+                                #     order = this_instrument['order']
+                                #     order['order_type'] = 'MARKET'
+                                #     order['price'] = None
+                                #     broker.cancel_order(order_id=order_id)
+                                #     new_order = dict(order)
+                                #     new_order['quantity'] = int(new_order['quantity'] *
+                                #                                 this_user['No of Lots'])
+                                #     order_id, message = broker.place_order(**new_order)
+                                #     this_instrument['entry_order_ids'][each_user]['order_id'] = order_id
+                                #     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                new_order_details_list = place_market_orders(
+                                    order_dict=this_instrument['order'],
+                                    this_user=this_user,
+                                    order_details_list=this_instrument['entry_order_ids'][each_user][
+                                        'order_details_list'])
+                                this_instrument['entry_order_ids'][each_user][
+                                    'order_details_list'] = new_order_details_list
 
-                                    order = this_instrument['order']
-                                    order['order_type'] = 'MARKET'
-                                    order['price'] = None
-                                    broker.cancel_order(order_id=order_id)
-                                    new_order = dict(order)
-                                    new_order['quantity'] = int(new_order['quantity'] *
-                                                                this_user['No of Lots'])
-                                    order_id, message = broker.place_order(**new_order)
-                                    this_instrument['entry_order_ids'][each_user]['order_id'] = order_id
-                                    logger.info(f"Order Placed for {each_user} Order_id {order_id}")
-
-                            logger.info(f" Entry has been taken for {this_instrument['tradingsymbol']} ")
+                            logger.info(f"Entry has been taken for {this_instrument['tradingsymbol']} ")
                             this_instrument['entry_time'] = datetime.now()
                             this_instrument['status'] = 2
                             # Place SL Order
                             order = {'variety': 'regular',
                                      'exchange': this_instrument['exchange'],
                                      'tradingsymbol': this_instrument['tradingsymbol'],
-                                     'quantity': int(this_instrument['quantity']),
+                                     'quantity': int(this_instrument['quantity']),  # TODO: Need to check
                                      'product': this_instrument['product_type'],
                                      'transaction_type': 'SELL',
                                      'order_type': 'SL',
@@ -837,13 +982,19 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                                      'tag': None}
 
                             for each_user in users_df_dict:
+                                this_user = users_df_dict[each_user]
                                 try:
-                                    this_user = users_df_dict[each_user]
                                     new_order = dict(order)
-                                    new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
-                                    order_id, message = this_user['broker'].place_order(**new_order)
-                                    this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
-                                    logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                    # new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
+                                    # order_id, message = this_user['broker'].place_order(**new_order)
+                                    # this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
+                                    # logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                    new_order_details_list = place_orders(order_dict=new_order,
+                                                                          freeze_limits_dict=freeze_limits_dict,
+                                                                          symbol_name=this_instrument['Symbol Name'],
+                                                                          this_user=this_user, order_type_str='SL')
+                                    this_instrument[
+                                        'exit_order_ids'][each_user]['order_details_list'] = new_order_details_list
                                 except:
                                     logger.critical(f"Error in SL Order Placement for {this_user['Name']} "
                                                     f"Error {sys.exc_info()}", exc_info=True)
@@ -851,7 +1002,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                             continue
 
                 if this_instrument['status'] == 2:  # Order Placed was executed
-                    this_instrument['ltp'] = ltp
                     this_instrument['profit'] = (ltp - this_instrument['entry_price']) * this_instrument['multiplier'] * \
                                                 this_instrument['quantity'] * this_instrument['lot_size']
                     final_df = final_df[final_df['Row_Type'] != 'T']
@@ -871,35 +1021,46 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         # Cancel Pending SL Order and Placing a Market Order
                         if paper_trade == 0:
                             for each_user in users_df_dict:
+                                this_user = users_df_dict[each_user]
                                 try:
-                                    this_user = users_df_dict[each_user]
-                                    order_id = this_instrument['exit_order_ids'][each_user]['order_id']
-                                    order_status, message = this_user['broker'].get_order_status(order_id)
-                                    this_instrument['exit_order_ids'][each_user]['order_status'] = order_status
-                                    if order_status == 'PENDING':
-                                        this_user['broker'].cancel_order(order_id)
-                                        order = {'variety': 'regular',
-                                                 'exchange': this_instrument['exchange'],
-                                                 'tradingsymbol': this_instrument['tradingsymbol'],
-                                                 'quantity': int(this_instrument['quantity']),
-                                                 'product': this_instrument['product_type'],
-                                                 'transaction_type': 'SELL',
-                                                 'order_type': 'MARKET',
-                                                 'price': None,
-                                                 'validity': 'DAY',
-                                                 'disclosed_quantity': None,
-                                                 'trigger_price': None,
-                                                 'squareoff': None,
-                                                 'stoploss': None,
-                                                 'trailing_stoploss': None,
-                                                 'tag': None}
-                                        new_order = dict(order)
-                                        new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
-                                        order_id, message = this_user['broker'].place_order(**new_order)
-                                        this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
-                                        logger.info(f"Order Placed for {each_user} Order_id {order_id}")
-                                    elif order_status == 'COMPLETE':
-                                        this_user['broker'].cancel_order(order_id)
+                                    # order_id = this_instrument['exit_order_ids'][each_user]['order_id']
+                                    # order_status, message = this_user['broker'].get_order_status(order_id)
+                                    # this_instrument['exit_order_ids'][each_user]['order_status'] = order_status
+                                    order = {'variety': 'regular',
+                                             'exchange': this_instrument['exchange'],
+                                             'tradingsymbol': this_instrument['tradingsymbol'],
+                                             'quantity': int(this_instrument['quantity']),
+                                             'product': this_instrument['product_type'],
+                                             'transaction_type': 'SELL',
+                                             'order_type': 'MARKET',
+                                             'price': None,
+                                             'validity': 'DAY',
+                                             'disclosed_quantity': None,
+                                             'trigger_price': None,
+                                             'squareoff': None,
+                                             'stoploss': None,
+                                             'trailing_stoploss': None,
+                                             'tag': None}
+                                    # if order_status == 'PENDING':
+                                    #     this_user['broker'].cancel_order(order_id)
+                                    #     new_order = dict(order)
+                                    #     new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
+                                    #     order_id, message = this_user['broker'].place_order(**new_order)
+                                    #     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
+                                    #     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                    # elif order_status == 'COMPLETE':
+                                    #     this_user['broker'].cancel_order(order_id)
+
+                                    # ----------- place exit orders -----------------
+                                    new_order_details_list = place_close_orders(order_dict=order,
+                                                                                this_user=this_user,
+                                                                                order_details_list=
+                                                                                this_instrument['exit_order_ids'][
+                                                                                    each_user]['order_details_list'])
+                                    this_instrument['exit_order_ids'][each_user][
+                                        'order_details_list'] = new_order_details_list
+                                    # -------------------------------------------------
+
                                 except:
                                     logger.critical(
                                         f"Error in Closing Order Placement for {this_user['Name']} Error {sys.exc_info()}",
@@ -938,35 +1099,43 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                             for each_user in users_df_dict:
                                 this_user = users_df_dict[each_user]
                                 try:
-                                    order_id = this_instrument['exit_order_ids'][each_user]['order_id']
-                                    order_status, message = this_user['broker'].get_order_status(order_id)
-                                    this_instrument['exit_order_ids'][each_user]['order_status'] = order_status
-                                    time.sleep(1)
-                                    if order_status == 'PENDING':
-                                        this_user['broker'].cancel_order(order_id)
-                                        time.sleep(1)
-                                        order = {'variety': 'regular',
-                                                 'exchange': this_instrument['exchange'],
-                                                 'tradingsymbol': this_instrument['tradingsymbol'],
-                                                 'quantity': int(this_instrument['quantity']),
-                                                 'product': this_instrument['product_type'],
-                                                 'transaction_type': 'SELL',
-                                                 'order_type': 'MARKET',
-                                                 'price': None,
-                                                 'validity': 'DAY',
-                                                 'disclosed_quantity': None,
-                                                 'trigger_price': None,
-                                                 'squareoff': None,
-                                                 'stoploss': None,
-                                                 'trailing_stoploss': None,
-                                                 'tag': None}
-                                        new_order = dict(order)
-                                        new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
-                                        order_id, message = this_user['broker'].place_order(**new_order)
-                                        this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
-                                        logger.info(f"Order Placed for {each_user} Order_id {order_id}")
-                                    elif order_status == 'COMPLETE':
-                                        this_user['broker'].cancel_order(order_id)
+                                    order = {'variety': 'regular',
+                                             'exchange': this_instrument['exchange'],
+                                             'tradingsymbol': this_instrument['tradingsymbol'],
+                                             'quantity': int(this_instrument['quantity']),
+                                             'product': this_instrument['product_type'],
+                                             'transaction_type': 'SELL',
+                                             'order_type': 'MARKET',
+                                             'price': None,
+                                             'validity': 'DAY',
+                                             'disclosed_quantity': None,
+                                             'trigger_price': None,
+                                             'squareoff': None,
+                                             'stoploss': None,
+                                             'trailing_stoploss': None,
+                                             'tag': None}
+                                    new_order_details_list = place_close_orders(order_dict=order,
+                                                                                this_user=this_user,
+                                                                                order_details_list=this_instrument[
+                                                                                    'exit_order_ids'][each_user][
+                                                                                    'order_details_list'])
+                                    this_instrument['exit_order_ids'][
+                                        each_user]['order_details_list'] = new_order_details_list
+                                    # order_id = this_instrument['exit_order_ids'][each_user]['order_id']
+                                    # order_status, message = this_user['broker'].get_order_status(order_id)
+                                    # this_instrument['exit_order_ids'][each_user]['order_status'] = order_status
+                                    # time.sleep(1)
+                                    # if order_status == 'PENDING':
+                                    #     this_user['broker'].cancel_order(order_id)
+                                    #     time.sleep(1)
+                                    #
+                                    #     new_order = dict(order)
+                                    #     new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
+                                    #     order_id, message = this_user['broker'].place_order(**new_order)
+                                    #     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
+                                    #     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                    # elif order_status == 'COMPLETE':
+                                    #     this_user['broker'].cancel_order(order_id)
                                 except Exception as e:
                                     logger.critical(f"Error in Closing Order Placement for {this_user['Name']}"
                                                     f" Error {sys.exc_info()}", exc_info=True)
@@ -993,44 +1162,48 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
                         this_instrument['status'] = 0
-                        this_instrument['vwap_signal'] = 'new'  # TODO Tuhin Add this in main code
-                        this_instrument['atrts_signal'] = 'new'  # TODO Tuhin Add this main code
-                        this_instrument['moving_average_signal'] = 'new'  # TODO Tuhin Add this main code
+                        this_instrument['vwap_signal'] = 'new'
+                        this_instrument['atrts_signal'] = 'new'
+                        this_instrument['moving_average_signal'] = 'new'
                         # Cancel Pending SL Order and Placing a Market Order
                         if paper_trade == 0:
                             for each_user in users_df_dict:
+                                this_user = users_df_dict[each_user]
                                 try:
-                                    this_user = users_df_dict[each_user]
-                                    order_id = this_instrument['exit_order_ids'][each_user]['order_id']
-                                    order_status, message = this_user['broker'].get_order_status(order_id)
-                                    this_instrument['exit_order_ids'][each_user]['order_status'] = order_status
-                                    if order_status == 'PENDING':
-                                        this_user['broker'].cancel_order(order_id)
-                                        order = {'variety': 'regular',
-                                                 'exchange': this_instrument['exchange'],
-                                                 'tradingsymbol': this_instrument['tradingsymbol'],
-                                                 'quantity': int(this_instrument['quantity']),
-                                                 'product': this_instrument['product_type'],
-                                                 'transaction_type': 'SELL',
-                                                 'order_type': 'MARKET',
-                                                 'price': None,
-                                                 'validity': 'DAY',
-                                                 'disclosed_quantity': None,
-                                                 'trigger_price': None,
-                                                 'squareoff': None,
-                                                 'stoploss': None,
-                                                 'trailing_stoploss': None,
-                                                 'tag': None}
-                                        new_order = dict(order)
-                                        new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
-                                        order_id, message = this_user['broker'].place_order(**new_order)
-                                        this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
-                                        logger.info(f"Order Placed for {each_user} Order_id {order_id}")
-                                    elif order_status == 'COMPLETE':
-                                        this_user['broker'].cancel_order(order_id)
-
-
-
+                                    order = {'variety': 'regular',
+                                             'exchange': this_instrument['exchange'],
+                                             'tradingsymbol': this_instrument['tradingsymbol'],
+                                             'quantity': int(this_instrument['quantity']),
+                                             'product': this_instrument['product_type'],
+                                             'transaction_type': 'SELL',
+                                             'order_type': 'MARKET',
+                                             'price': None,
+                                             'validity': 'DAY',
+                                             'disclosed_quantity': None,
+                                             'trigger_price': None,
+                                             'squareoff': None,
+                                             'stoploss': None,
+                                             'trailing_stoploss': None,
+                                             'tag': None}
+                                    # order_id = this_instrument['exit_order_ids'][each_user]['order_id']
+                                    # order_status, message = this_user['broker'].get_order_status(order_id)
+                                    # this_instrument['exit_order_ids'][each_user]['order_status'] = order_status
+                                    # if order_status == 'PENDING':
+                                    #     this_user['broker'].cancel_order(order_id)
+                                    #     new_order = dict(order)
+                                    #     new_order['quantity'] = int(new_order['quantity'] * this_user['No of Lots'])
+                                    #     order_id, message = this_user['broker'].place_order(**new_order)
+                                    #     this_instrument['exit_order_ids'][each_user]['order_id'] = order_id
+                                    #     logger.info(f"Order Placed for {each_user} Order_id {order_id}")
+                                    # elif order_status == 'COMPLETE':
+                                    #     this_user['broker'].cancel_order(order_id)
+                                    new_order_details_list = place_close_orders(order_dict=order,
+                                                                                this_user=this_user,
+                                                                                order_details_list=this_instrument[
+                                                                                    'exit_order_ids'][each_user][
+                                                                                    'order_details_list'])
+                                    this_instrument['exit_order_ids'][
+                                        each_user]['order_details_list'] = new_order_details_list
                                 except:
                                     logger.critical(f"Error in Closing Order Placement for {this_user['Name']}"
                                                     f" Error {sys.exc_info()}", exc_info=True)
@@ -1060,6 +1233,45 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                 manager_dict['algo_error'] = f"Error in Strategy Function, Error: {sys.exc_info()}"
                 manager_dict['algo_running'] = False
                 return
+
+        # ------------- create positions df -----------------
+        positions_df = pd.DataFrame(columns=app_data.POSITIONS_COLUMNS)
+        # iterate through all users
+        for unique_username, each_user_row in users_df_dict.items():
+            no_of_lots = each_user_row['No of Lots']
+
+            for each_key, row in instruments_df_dict.items():
+                time_frame = row['timeframe']
+                row_type = row['Row_Type']
+                tradingsymbol = row['tradingsymbol']
+                exchange = row['exchange']
+                lot_size = row['lot_size']
+                multiplier = row['multiplier']
+                ltp = row['ltp']
+                target_price = row['target_price']
+                sl_price = row['sl_price']
+                entry_price = row['entry_price']
+                entry_time = row['entry_time']
+                exit_price = row['exit_price']
+                exit_time = row['exit_time']
+                _trend = row['transaction_type']  # todo: check if this right thing to do
+
+                _quantity = no_of_lots * lot_size
+                try:
+                    profit = (ltp - entry_price) * multiplier * no_of_lots
+                except TypeError:
+                    continue
+
+                _row_dict = {'tradingsymbol': tradingsymbol, 'exchange': exchange, 'quantity': _quantity,
+                             'timeframe': time_frame, 'multiplier': multiplier, 'entry_price': entry_price,
+                             'entry_time': entry_time, 'exit_price': exit_price, 'exit_time': exit_time,
+                             'target_price': target_price, 'sl_price': sl_price, 'Row_Type': row_type,
+                             'profit': profit, 'ltp': ltp, "user_id": unique_username, "Trend": _trend}
+                temp_df = pd.DataFrame([_row_dict], columns=list(positions_df.columns))
+                positions_df = pd.concat([positions_df, temp_df], ignore_index=True)
+
+        positions_df.to_csv(settings.DATA_FILES.get('POSITIONS_FILE_PATH'), index=False)
+        # ----------------- end of create positions df -----------------
 
 
 if __name__ == '__main__':

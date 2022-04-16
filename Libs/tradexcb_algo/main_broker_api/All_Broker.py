@@ -8,16 +8,9 @@ import urllib.parse as urlparse
 import pandas as pd
 import pyotp
 import requests
-# Alice Blue
-from alice_blue import *
+
 # Kite API
 from kiteconnect import KiteConnect, KiteTicker
-# Angel one API
-from smartapi import SmartConnect
-
-# IIFL API
-from Libs.tradexcb_algo.Connect import XTSConnect
-from Libs.tradexcb_algo.MarketDataSocketClient import MDSocket_io
 from Libs.tradexcb_algo.main_broker_api import angel_helper, iifl_helper
 from Libs.tradexcb_algo.main_broker_api import main_broker
 
@@ -241,6 +234,8 @@ class All_Broker(main_broker.Broker):
             return self.all_data_kwargs[Allcols.username.value]
 
     def do_login(self):
+        # Alice Blue
+        from alice_blue import AliceBlue
         username = self.all_data_kwargs[Allcols.username.value]
         password = self.all_data_kwargs[Allcols.password.value]
         apikey = self.all_data_kwargs[Allcols.apikey.value]
@@ -304,6 +299,10 @@ class All_Broker(main_broker.Broker):
 
         elif self.broker_name.lower() == 'iifl':
             try:
+                # IIFL API
+                from Libs.tradexcb_algo.Connect import XTSConnect
+                from Libs.tradexcb_algo.MarketDataSocketClient import MDSocket_io
+
                 self.market_api = XTSConnect(market_appkey, market_secretkey, source)
                 response = self.market_api.marketdata_login()
                 # iifl_helper.download_master_file(self.market_api)
@@ -340,6 +339,8 @@ class All_Broker(main_broker.Broker):
 
         elif self.broker_name.lower() == 'angel':
             try:
+                # Angel one API
+                from smartapi import SmartConnect
                 obj = SmartConnect(api_key=apikey)
                 data = obj.generateSession(username, password)
                 self.data = data
@@ -428,8 +429,8 @@ class All_Broker(main_broker.Broker):
                 self.log_this(f"Error in Order Placement ")
                 self.log_this(f"{str(sys.exc_info())}")
 
-
         elif self.broker_name.lower() == 'alice blue':
+            from alice_blue import TransactionType, OrderType, ProductType
             transaction_map = {'BUY': TransactionType.Buy, 'SELL': TransactionType.Sell}
             order_map = {'MARKET': OrderType.Market, 'LIMIT': OrderType.Limit, 'SL-M': OrderType.StopLossMarket,
                          'SL': OrderType.StopLossLimit}
@@ -499,11 +500,11 @@ class All_Broker(main_broker.Broker):
         return order_id, message
 
     def cancel_order(self, order_id):
-        '''
+        """
 
-        :param kwargs:
+        :param order_id:
         :return:
-        '''
+        """
         message = 'success'
         order_id = order_id
         error_message = f"Error in Cancelling Order {order_id}"
