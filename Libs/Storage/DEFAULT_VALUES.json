@@ -28,7 +28,7 @@
       "dropdown": true,
       "dropdown_values": [
         "MIS",
-        "NORMAL"
+        "NRML"
       ]
    },
    "wait_time": {
