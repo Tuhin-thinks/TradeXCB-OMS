@@ -203,7 +203,7 @@ class LoginWindow(QMainWindow):
                 hashed_string = encrypto.generate_hash(security_question, security_answer)
                 self.check_security_hash(hashed_string, user_name, email_id)
         else:
-            Interact.show_message(self, "Operation Failed", "User not yet registered", "warning")
+            Interact.show_message(self, "Operation Denied", "User not yet registered", "warning")
 
     @QtCore.pyqtSlot(object)
     def recv_sec_check_status(self, args):
@@ -232,7 +232,7 @@ class LoginWindow(QMainWindow):
             localdb.logout()
             self.close()
         else:
-            Interact.show_message(self, "Reset Operation Failed", "Failed to reset password", "error")
+            Interact.show_message(self, "Reset Operation Unsuccessful", "Failed to reset password", "error")
 
     def complete_reset_request(self):
         try:

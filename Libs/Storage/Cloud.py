@@ -18,8 +18,8 @@ logger = exception_handler.getFutureLogger(__name__)
 END_POINT = "clientstore-do-user-10490870-0.b.db.ondigitalocean.com"
 PORT = "25060"
 DB_NAME = "ClientStore"
-DEFAULT_USERNAME = "mxcb_lt"
-DEFAULT_PASSWORD = "mxcb_algobeacon"
+DEFAULT_USERNAME = "tradexcb_oms_lt"
+DEFAULT_PASSWORD = "tradebot_algobeacon"
 
 
 class RequestRegistration:
@@ -240,7 +240,7 @@ class CloudLoginManager:
         cursor = connection.cursor()
 
         password_check_query_ = """
-SELECT 
+SELECT
     user_request_table.user_id, password
 FROM
     user_request_table
@@ -274,14 +274,14 @@ FROM
         else:
             cursor.close()
             connection.close()
-            return -1, "Login Failed", ()
+            return -1, "Login Denied", ()
 
     def get_user_request_id(self):
         connection = self.create_connection(engine="pymysql")
         if connection is None:
             return -1, None, None
         cursor = connection.cursor()
-        get_user_id_query = """SELECT user_id from user_request_table where user_name=%s and email_id=%s limit 1;"""
+        get_user_id_query = """SELECT user_id from user_request_table where user_name=%s and email_id=%s;"""
         cursor.execute(get_user_id_query, (self.user_name, self.email_id))
         data = cursor.fetchone()
         if data:
@@ -326,7 +326,7 @@ FROM
         cursor = connection.cursor()
 
         reset_password_query = """
-        UPDATE user_request_table set password=%s where user_name=%s and email_id=%s; 
+        UPDATE user_request_table set password=%s where user_name=%s and email_id=%s;
         """
         cursor.execute(reset_password_query, (encrypto.encrypt_db_pass(new_password, self.email_id),
                                               self.user_name, self.email_id))
@@ -397,7 +397,7 @@ class DownloadTableData:
             table_name = "notifications"
 
             cursor.execute(f"""
-            select notification_time, notification_text from {table_name} where 
+            select notification_time, notification_text from {table_name} where
             (target_app_id={settings.APP_ID} or target_app_id=0) and (target_app_version='{settings.App_VERSION}'
             or target_app_version is null);""")
 

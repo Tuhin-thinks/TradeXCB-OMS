@@ -2,8 +2,8 @@ import logging
 import random
 import os
 
-APP_ID = 4  # TradeXCB
-APP_NAME = "TradeXCB"
+APP_ID = 6
+APP_NAME = "TradeXCB-OMS"
 EXTENSION = "-BETA"
 App_VERSION = "0.1.0"
 SITE_LINK = "https://www.trendmyfriend.co.in"

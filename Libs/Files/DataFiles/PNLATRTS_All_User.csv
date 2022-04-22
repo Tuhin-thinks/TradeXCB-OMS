@@ -1,2 +1,2 @@
 user_id,tradingsymbol,exchange,quantity,timeframe,entry_price,entry_time,exit_price,exit_time,target_price,sl_price,Row_Type,profit,ltp,Trend
-Yash account,NIFTY2242117500CE,NFO,1000,1,136.05,2022-04-14 14:02:20.190847,,,141.05,133.05,T,60.99999999999966,139.1,BUY
+yash,NIFTY2242117250CE,NFO,2500,3,45.35,2022-04-21 10:51:02.064621,,,60.35,35.35,T,-107.49999999999993,43.2,BUY

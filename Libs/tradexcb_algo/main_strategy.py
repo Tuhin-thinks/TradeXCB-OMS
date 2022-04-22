@@ -32,29 +32,13 @@ to_dt = to_dt.strftime('%Y-%m-%d')
 datetime_format = '%Y-%m-%d %H:%M:%S'
 
 
-def get_vwap(df: pd.DataFrame):
-    try:
-        print(df.columns)
-        df['time'] = df.index
-        columns_df = list(df.columns)
-        columns_df.append('vwap')
-        df['Quantity_Rolling_Sum'] = df.groupby(df['time'].dt.date)['volume'].cumsum()
-        df['PriceXVolume'] = (df['HA_close'] + df['HA_high'] + df['HA_low']) / 3 * df['volume']
-        df['PriceXVolumeCUMSUM'] = df.groupby(df['time'].dt.date)['PriceXVolume'].cumsum()
-        df['vwap'] = df['PriceXVolumeCUMSUM'] / df['Quantity_Rolling_Sum']
-        df = df[columns_df]
-        return df
-    except Exception as e:
-        print(sys.exc_info())
-        logger.critical(f"Error in get_vwap(): {e.__str__()}", exc_info=True)
-
-
 def fix_values(value, tick_size):
     return round(int(value / tick_size) * tick_size, len(str(tick_size)))
 
 
 # ------------ order management -----------------
-def slice_calculation(lots_to_exec, n_slices, freeze_limit):
+def slice_calculation(lots_to_exec: int, n_slices: str, freeze_limit: int):
+    print(f"{n_slices=}, {type(n_slices)=}")
     if isinstance(n_slices, str) and n_slices.isdigit() and int(n_slices) > 0:
         n_slices = int(n_slices)
         if lots_to_exec >= n_slices:
@@ -86,7 +70,8 @@ def place_orders(order_dict: typing.Dict, freeze_limits_dict: typing.Dict, symbo
     lots_to_exec = int(this_user['No of Lots'])
     n_slices = this_user['Slices']  # this has to be in <'str'> or NoneType value
     freeze_limit: int = freeze_limits_dict[symbol_name]
-    n_slices, ind_slice_size = slice_calculation(lots_to_exec, n_slices, freeze_limit)
+    n_slices, ind_slice_size = slice_calculation(lots_to_exec, str(n_slices) if n_slices else None, freeze_limit)
+    logger.debug(f"{n_slices=}, {ind_slice_size=}")
     order_details_list = []
     for i in range(n_slices):
         new_order = dict(order_dict)
@@ -106,7 +91,7 @@ def place_orders(order_dict: typing.Dict, freeze_limits_dict: typing.Dict, symbo
             order_details_list.append({"order_id": order_id,
                                        "order": new_order,
                                        "quantity": new_order['quantity'],
-                                       "status": "OPEN",
+                                       "status": "",
                                        "message": message})
             logger.info(f"{this_user['Name']} : {order_type_str} Order Placed, Order ID: {order_id}")
         else:
@@ -151,7 +136,7 @@ def place_market_orders(order_dict: typing.Dict, this_user: typing.Dict, order_d
                 new_order_details_list.append({"order_id": order_id,
                                                "order": new_order,
                                                "quantity": new_order['quantity'],
-                                               "status": "OPEN",
+                                               "status": "",
                                                "message": message})
                 logger.info(f"{this_user['Name']}: Market Order Placed, Order_id:{order_id}")
             else:
@@ -185,7 +170,7 @@ def place_close_orders(order_dict: typing.Dict, this_user: typing.Dict, order_de
             if order_id:
                 order_details_list[index]['order_id'] = order_id
                 order_details_list[index]['order'] = new_order_dict
-                order_details_list[index]['status'] = "OPEN"
+                order_details_list[index]['status'] = ""
                 order_details_list[index]['message'] = message
                 logger.info(f"{this_user['Name']}: Close Order Placed, Order_id:{order_id}")
             else:
@@ -285,7 +270,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         - 'orderbook_data': to store the orderbook data
     :return: None
     """
-    from Libs.Utils.custom_talib import SuperTrend
     # Variables
     paper_trade = manager_dict['paper_trade']
     # DO login for All users
@@ -496,101 +480,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                     time_df_col = df.index
                     df = HA(df, ohlc=['open', 'high', 'low', 'close'])
                     df.index = time_df_col
-                    # df = get_vwap(df)
-                    # df['SUPERTREND'] = SuperTrend(df, this_instrument['ATR TS Period'],
-                    #                               this_instrument['ATR TS Multiplier'],
-                    #                               ohlc=['HA_open', 'HA_high', 'HA_low', 'HA_close'])
-                    # this_instrument['vwap_last'] = df['vwap'].tail(2).head(1).values[0]
-                    # vwap = df['vwap'].tail(1).values[0]
-
-                    # atr_trend_bullish = 0
-                    # atr_trend_bearish = 0
-                    #
-                    # if this_instrument['ATRTS'] == 'YES':
-                    #     if this_instrument['atrts_signal'] == 'new':
-                    #         atr_trend_bearish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'down') & (
-                    #                 df['SUPERTREND'].tail(2).head(1).values[0] == 'up')) else 0
-                    #         atr_trend_bullish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'up') & (
-                    #                 df['SUPERTREND'].tail(2).head(1).values[0] == 'down')) else 0
-                    #     if this_instrument['atrts_signal'] == 'existing':
-                    #         atr_trend_bearish = 1 if (df['SUPERTREND'].tail(1).head(1).values[0] == 'down') else 0
-                    #         atr_trend_bullish = 1 if (df['SUPERTREND'].tail(1).head(1).values[0] == 'up') else 0
-                    #
-                    # else:
-                    #     atr_trend_bullish = 1
-                    #     atr_trend_bearish = 1
-                    #
-                    # logger.info(f" Bearish trend : {atr_trend_bearish} Bullish trend : {atr_trend_bullish}")
-
-                    # vwap_trend_bullish = 0
-                    # vwap_trend_bearish = 0
-                    #
-                    # logger.info(f"Previous Vwap : {this_instrument['vwap_last']} Now Vwap : {vwap}")
-                    # if this_instrument['vwap'] == 'YES' and this_instrument['vwap_last'] != 0:
-                    #
-                    #     if this_instrument['vwap_signal'] == 'new':
-                    #         vwap_trend_bullish = 1 if (df['HA_close'].tail(1).head(1).values[0] > vwap) and (
-                    #                 df['HA_close'].tail(2).head(1).values[0] < this_instrument['vwap_last']) else 0
-                    #         vwap_trend_bearish = 1 if (df['HA_close'].tail(1).head(1).values[0] < vwap) and (
-                    #                 df['HA_close'].tail(2).head(1).values[0] > this_instrument['vwap_last']) else 0
-                    #
-                    #     if this_instrument['vwap_signal'] == 'existing':
-                    #         vwap_trend_bullish = 1 if (df['HA_close'].tail(1).head(1).values[0] > vwap) else 0
-                    #         vwap_trend_bearish = 1 if (df['HA_close'].tail(1).head(1).values[0] < vwap) else 0
-                    # else:
-                    #     vwap_trend_bullish = 1
-                    #     vwap_trend_bearish = 1
-                    #
-                    # this_instrument['vwap_last'] = vwap
-
-                    # ma_trend_bullish = 0
-                    # ma_trend_bearish = 0
-                    # if this_instrument['moving_average'] == 'YES':
-                    #     df['moving_average'] = talib.MA(df['HA_close'],
-                    #                                     timeperiod=int(this_instrument['moving_average_period']))
-                    #     row_name = 'moving_average'
-                    #     if this_instrument['moving_average_signal'] == 'new':
-                    #         ma_trend_bullish = 1 if (df[row_name].tail(1).values[0] < df['HA_close'].tail(1).values[
-                    #             0]) and (df[row_name].tail(2).head(1).values[0] >=
-                    #                      df['HA_close'].tail(2).head(1).values[0]) else 0
-                    #         ma_trend_bearish = 1 if (df[row_name].tail(1).values[0] >= df['HA_close'].tail(1).values[
-                    #             0]) and (df[row_name].tail(2).head(1).values[0] < df['HA_close'].tail(2).head(1).values[0]) else 0
-                    #
-                    # else:
-                    #     ma_trend_bullish = 1
-                    #     ma_trend_bearish = 1
-
-                    # if this_instrument['use_priceba'] == 'YES':
-                    #     price_above_trend_bullish = 1 if ltp > this_instrument['buy_above'] else 0
-                    #     price_above_trend_bearish = 1
-                    # else:
-                    #     price_above_trend_bearish = 1
-                    #     price_above_trend_bullish = 1
-                    #
-                    # if this_instrument['use_pricesb'] == 'YES':
-                    #     price_trend_bullish = 1 if ltp < this_instrument['sell_below'] else 0
-                    #     price_trend_bearish = 1
-                    # else:
-                    #     price_trend_bearish = 1
-                    #     price_trend_bullish = 1
-
-                    # ----------- printing and logging --------------
-                    # print(f"\n{price_above_trend_bullish=}\n{price_trend_bullish=}\n{ma_trend_bullish=}\n"
-                    #       f"{vwap_trend_bullish=}\n{atr_trend_bullish=}")
-                    #
-                    # print(f"\n{price_above_trend_bearish=}\n{price_trend_bearish=}\n{ma_trend_bearish=}\n"
-                    #       f"{vwap_trend_bearish=}\n{atr_trend_bearish=}\n"
-                    #       f"{this_instrument['multiplier']=} != -1\n{this_instrument['transaction_type']=} == 'SELL'")
-                    # logger.debug(f"{price_above_trend_bullish} and {price_trend_bullish} and {ma_trend_bullish} and \
-                    #         {vwap_trend_bullish} and {atr_trend_bullish} and \
-                    #         {this_instrument['multiplier']} != 1 and {this_instrument['transaction_type']} == 'BUY'")
-                    # logger.debug(
-                    #     f"{price_above_trend_bearish=} and {price_trend_bearish=} and {ma_trend_bearish=} and "
-                    #     f"{price_trend_bearish=} and {ma_trend_bearish=} and"
-                    #     f"{vwap_trend_bearish=} and {atr_trend_bearish=} and {this_instrument['multiplier']=} != -1 and"
-                    #     f" {this_instrument['transaction_type']=} == 'SELL'")
-                    # ------------------------------------------------
-
                     if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and \
                             vwap_trend_bullish and atr_trend_bullish and \
                             this_instrument['multiplier'] != 1 and this_instrument['transaction_type'].upper() == 'BUY':
@@ -815,9 +704,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
                         this_instrument['status'] = 0
-                        # this_instrument['vwap_signal'] = 'new'
-                        # this_instrument['atrts_signal'] = 'new'
-                        # this_instrument['moving_average_signal'] = 'new'
                         # Cancel Pending SL Order and Placing a Market Order
                         if paper_trade == 0:
                             for each_user in users_df_dict:
@@ -876,9 +762,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
                         this_instrument['status'] = 0
-                        # this_instrument['vwap_signal'] = 'new'
-                        # this_instrument['atrts_signal'] = 'new'
-                        # this_instrument['moving_average_signal'] = 'new'
 
                         # Cancel Pending SL Order and Placing a Market Order
                         if paper_trade == 0:
@@ -932,10 +815,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
                         this_instrument['status'] = 0
-                        # this_instrument['vwap_signal'] = 'new'
-                        # this_instrument['atrts_signal'] = 'new'
-                        # this_instrument['moving_average_signal'] = 'new'
-                        # Cancel Pending SL Order and Placing a Market Order
                         if paper_trade == 0:
                             for each_user in users_df_dict:
                                 this_user = users_df_dict[each_user]
@@ -1032,6 +911,5 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
 
 
 if __name__ == '__main__':
-    # instruments_df_dict = dict()
     main(manager_dict={'paper_trade': 0, 'algo_running': True, 'fore_stop': True, 'algo_error': None},
          cancel_orders_queue=multiprocessing.Queue())
