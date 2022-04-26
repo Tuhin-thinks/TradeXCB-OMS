@@ -1,3 +1,4 @@
+import re
 import datetime
 import json
 import os
@@ -39,6 +40,7 @@ class All_Broker(main_broker.Broker):
         """
 
         super().__init__(**kwargs)
+        self.enctoken = None
         self.broker = None
         self.logger = self.get_logger(f"USER_{self.all_data_kwargs[Allcols.username.value]}")
         self.refreshtoken = None
@@ -278,8 +280,11 @@ class All_Broker(main_broker.Broker):
                     print(res.url)
                     parsed = urlparse.urlparse(res.history[1].headers['location'])
                     request_token = urlparse.parse_qs(parsed.query)['request_token'][0]
+                    header_string = res2.headers['Set-Cookie']
+                    pattern = r"enctoken=(?P<token>.+?)\;"
+                    self.enctoken = re.search(pattern, header_string).groupdict()['token']
                 except Exception as e:
-                    self.log_this(f"Error in getting request token for {username} Broker {self.broker_name}",
+                    self.log_this(f"Error in getting request-token/enc-token for {username} Broker {self.broker_name}",
                                   log_level="error")
 
                 session.close()
@@ -688,6 +693,35 @@ class All_Broker(main_broker.Broker):
 
         return order_history
 
+    def _zerodha_get_ohlc(self, instrument_token: int, interval_str: str, start_date: str, end_date: str):
+        try:
+            user_name = self.all_data_kwargs[Allcols.username.value]  # main broker user_name
+            auth_val = f'enctoken {self.enctoken}'
+
+            head_rs = {
+                'authorization': auth_val,
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
+                'Accept': '*/*'
+            }
+            url = f'https://kite.zerodha.com/oms/instruments/historical/{instrument_token}/{interval_str}' \
+                  f'?user_id={user_name}&oi=1&from={start_date}&to={end_date}'
+            resp = requests.get(url, headers=head_rs)
+            if resp.status_code == 200:
+                data = resp.json()
+                if data['status'] == "success":
+                    ohlc = data['data']['candles']
+                    if len(ohlc) > 0:
+                        ohlc_df = pd.DataFrame(ohlc, columns=['time', 'open', 'high', 'low', 'close', 'volume', 'oi'])
+                        ohlc_df['time'] = ohlc_df['time'].astype(str).str[:19]
+                        ohlc_df['time'] = pd.to_datetime(ohlc_df['time'], format='%Y-%m-%d %H:%M:%S')
+                        ohlc_df.set_index('time', inplace=True)
+                        return ohlc_df
+            else:
+                return None
+
+        except Exception as ex:
+            self.log_this(f"Error occurred to get historical data from Zerodha API, {ex.__str__()}", "error")
+
     def get_data(self, instrument_token, timeframe: str, timeframesuffix: str, from_dt: datetime.datetime,
                  to_dt: datetime.datetime):
         """
@@ -711,13 +745,19 @@ class All_Broker(main_broker.Broker):
                     interval = 'minute'
                 else:
                     interval = str(timeframe) + str(timeframesuffix)
-                df = self.broker.historical_data(instrument_token=int(instrument_token), interval=interval,
-                                                 from_date=from_dt, to_date=to_dt)
 
-                for x in range(0, len(df)):
-                    df[x]['date'] = df[x]['date'].replace(tzinfo=None)
-                df = pd.DataFrame(df)
-                df.set_index('date', inplace=True)
+                df = self._zerodha_get_ohlc(instrument_token, interval, from_dt.strftime('%Y-%m-%d'),
+                                                 to_dt.strftime('%Y-%m-%d'))
+                if df is not None:
+                    raise ValueError('Failed to get historical data from Zerodha API')
+                # todo: remove code after finalizing the code
+                # df = self.broker.historical_data(instrument_token=int(instrument_token), interval=interval,
+                #                                  from_date=from_dt, to_date=to_dt)
+                #
+                # for x in range(0, len(df)):
+                #     df[x]['date'] = df[x]['date'].replace(tzinfo=None)
+                # df = pd.DataFrame(df)
+                # df.set_index('date', inplace=True)
                 message = 'success'
             except Exception as e:
                 self.logger.critical(f"Error is getting data: {str(e)}", exc_info=True)

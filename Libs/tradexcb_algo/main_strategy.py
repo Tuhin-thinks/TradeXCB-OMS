@@ -438,23 +438,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         # --------------- run the main strategy ---------------
         curr_date = datetime.now()
         process_name = 'Main Strategy'
-
-        # ----------- presets for ignoring indicators ---------------
-        # -- use price_ba = No --
-        price_above_trend_bearish = 1
-        price_above_trend_bullish = 1
-        # -- user price_sb --
-        price_trend_bearish = 1
-        price_trend_bullish = 1
-        # -- moving average = Np --
-        ma_trend_bullish = 1
-        ma_trend_bearish = 1
-        # -- vwap = No --
-        vwap_trend_bullish = 1
-        vwap_trend_bearish = 1
-        # -- use ATRTS = No --
-        atr_trend_bullish = 1
-        atr_trend_bearish = 1
         # -----------------------------------------------------------
 
         for each_key in instruments_df_dict:
@@ -480,9 +463,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                     time_df_col = df.index
                     df = HA(df, ohlc=['open', 'high', 'low', 'close'])
                     df.index = time_df_col
-                    if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and \
-                            vwap_trend_bullish and atr_trend_bullish and \
-                            this_instrument['multiplier'] != 1 and this_instrument['transaction_type'].upper() == 'BUY':
+                    if this_instrument['multiplier'] != 1 and this_instrument['transaction_type'].upper() == 'BUY':
                         logger.info(f" In Buy Loop. for {this_instrument['tradingsymbol']}\n"
                                     f"Buy Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
@@ -544,10 +525,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
 
                         logger.info(f" Instrument_Details : {this_instrument}")
 
-                    elif (price_above_trend_bearish and price_trend_bearish and ma_trend_bearish and
-                          vwap_trend_bearish and atr_trend_bearish and
-                          this_instrument['multiplier'] != -1 and this_instrument[
-                              'transaction_type'].upper() == 'SELL'):
+                    elif (this_instrument['multiplier'] != -1 and
+                          this_instrument['transaction_type'].upper() == 'SELL'):
                         logger.info(f" In Sell Loop. for {this_instrument['tradingsymbol']}")
                         logger.info(f" Sell Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
