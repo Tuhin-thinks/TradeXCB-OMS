@@ -28,7 +28,6 @@ three_thirty = datetime.now().replace(hour=15, minute=30, second=0, microsecond=
 nine_sixteen = datetime.now().replace(hour=9, minute=16, second=0, microsecond=0)
 to_dt = datetime.now()
 from_dt = to_dt - timedelta(days=5)
-to_dt = to_dt.strftime('%Y-%m-%d')
 datetime_format = '%Y-%m-%d %H:%M:%S'
 
 
