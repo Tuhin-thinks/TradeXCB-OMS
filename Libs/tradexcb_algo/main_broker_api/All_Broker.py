@@ -166,10 +166,7 @@ class All_Broker(main_broker.Broker):
 
             def on_connect():
                 """Connect from the socket."""
-                # response = xt.send_subscription(Instruments, 1505)
                 response = self.market_api.send_subscription(self.Instruments, 1501)
-                # response = self.market_api.send_subscription(self.Instruments, 1510)
-                # response = self.market_api.send_subscription(self.Instruments, 1502)
                 print('Sent Subscription request!', response)
 
             def on_message(data):
@@ -357,6 +354,9 @@ class All_Broker(main_broker.Broker):
                 self.broker = None
                 self.log_this(
                     f"Error in logging in for {username} Broker : {self.broker_name} Error : {sys.exc_info()}")
+
+        if self.broker is None:
+            raise ValueError(f"Error in logging in for {username} Broker : {self.broker_name}")
 
     def place_order(self, **kwargs):
         """
@@ -747,8 +747,8 @@ class All_Broker(main_broker.Broker):
                     interval = str(timeframe) + str(timeframesuffix)
 
                 df = self._zerodha_get_ohlc(instrument_token, interval, from_dt.strftime('%Y-%m-%d'),
-                                                 to_dt.strftime('%Y-%m-%d'))
-                if df is not None:
+                                            to_dt.strftime('%Y-%m-%d'))
+                if df is None:
                     raise ValueError('Failed to get historical data from Zerodha API')
                 # todo: remove code after finalizing the code
                 # df = self.broker.historical_data(instrument_token=int(instrument_token), interval=interval,

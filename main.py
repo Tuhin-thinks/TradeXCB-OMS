@@ -590,12 +590,16 @@ def run_app():
 
 
 def test():
-    from Libs.Files import handle_user_details
-    data = handle_user_details.read_user_api_details()  # for testing
-    pprint.PrettyPrinter().pprint(data)
+    # from Libs.Files import handle_user_details
+    # data = handle_user_details.read_user_api_details()  # for testing
+    # pprint.PrettyPrinter().pprint(data)
+
+    from Libs.Utils.calculations import get_last_2_wk_days
+    print(get_last_2_wk_days())
 
 
 if __name__ == '__main__':
     if os.name == 'nt':
         multiprocessing.freeze_support()
     run_app()
+    # test()

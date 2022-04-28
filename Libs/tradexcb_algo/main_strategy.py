@@ -14,7 +14,7 @@ import pandas as pd
 from Libs.Files import handle_user_details
 from Libs.Files.TradingSymbolMapping import StrategiesColumn
 from Libs.Storage import app_data, manage_local
-from Libs.Utils import settings, exception_handler
+from Libs.Utils import settings, exception_handler, calculations
 from .TA_Lib import HA
 from .main_broker_api.All_Broker import All_Broker
 
@@ -26,8 +26,6 @@ logger = exception_handler.getAlgoLogger(__name__)
 nine_fifteen = datetime.now().replace(hour=9, minute=15, second=0, microsecond=0)
 three_thirty = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
 nine_sixteen = datetime.now().replace(hour=9, minute=16, second=0, microsecond=0)
-to_dt = datetime.now()
-from_dt = to_dt - timedelta(days=5)
 datetime_format = '%Y-%m-%d %H:%M:%S'
 
 
@@ -271,6 +269,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
     """
     # Variables
     paper_trade = manager_dict['paper_trade']
+    to_dt = datetime.now()
+    from_dt = calculations.get_last_2_wk_days()[0]
     # DO login for All users
     process_name = 'User Login Process'
     try:
@@ -280,6 +280,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
             manager_dict['algo_error'] = f"{process_name} failed, No API details found"
             manager_dict['algo_running'] = False
             logger.critical("No API details found")
+            return
 
         users_df = pd.DataFrame(api_data)  # read all data from sqlite
         users_df['No of Lots'] = users_df['No of Lots'].astype(int)
@@ -383,16 +384,21 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         orderbook_export_data = {x: [] for x in app_data.OMS_TABLE_COLUMNS}
         for each_key in instruments_df_dict:
             row_data = instruments_df_dict[each_key]
-            orderbook_export_data["Instrument"].append(row_data['tradingsymbol'])
-            orderbook_export_data["Entry Price"].append(row_data['entry_price'])
             entry_time = row_data['entry_time']
+            entry_price = row_data['entry_price']
+            if entry_time is None or entry_price is None:
+                continue
             if isinstance(entry_time, datetime):
                 if entry_time.date() == datetime.now().date():
                     orderbook_export_data["Entry Time"].append(entry_time.strftime("%H:%M:%S"))
                 else:
                     continue
-            else:
+            elif isinstance(entry_time, str):
                 orderbook_export_data["Entry Time"].append(entry_time)
+            else:
+                continue  # for NoneType don't show them in orderbook
+            orderbook_export_data["Instrument"].append(row_data['tradingsymbol'])
+            orderbook_export_data["Entry Price"].append(entry_price)
             orderbook_export_data["Exit Price"].append(row_data['exit_price'])
 
             exit_time = row_data['exit_time']

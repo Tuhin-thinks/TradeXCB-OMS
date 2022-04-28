@@ -5,7 +5,7 @@ import os
 APP_ID = 6
 APP_NAME = "TradeXCB-OMS"
 EXTENSION = "-BETA"
-App_VERSION = "0.1.6"
+App_VERSION = "0.1.7"
 SITE_LINK = "https://www.trendmyfriend.co.in"
 LOGGING_LEVEL = logging.DEBUG
 adjust_minutes = 2.5  # adjustments on time-frame check delay (check interval = 2.5 minutes less than time-frame)
@@ -42,6 +42,5 @@ CURRENT_APP_LOGO = random.choice(AVAILABLE_LOGOS_RCS)
 APP_LOGO_img_only = "tradexcb_logo.png"
 THEME_NAME_MAPPING = {
     "Dark.xml": ":/icons/app_logo_white.png"
-
 }
 days2_expire = 60

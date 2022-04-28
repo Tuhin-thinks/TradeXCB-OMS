@@ -1,13 +1,17 @@
-from datetime import datetime
-
-import numpy as np
-from Libs.Utils import settings
-from Libs.globals import *
 import hashlib
 import json
+from datetime import datetime, timedelta
+
+import numpy as np
+
+from Libs.globals import *
 
 nine_fifteen = datetime.today().replace(hour=9, minute=15, second=0, microsecond=0)  # start time
 three_35 = datetime.today().replace(hour=15, minute=35, second=0, microsecond=0)  # stop time
+
+
+class ArgumentError(Exception):
+    pass
 
 
 def dict_hash(dictionary: typing.Dict[str, typing.Any]) -> str:
@@ -92,6 +96,37 @@ def delta_crossover_check(row_data):
 def is_weekday():
     today_ = datetime.today()
     return today_.isoweekday() < 6
+
+
+def get_last_2_wk_days(format_output=False, format_string=None):
+    """
+    returns: (last-1) week day, (last) weekday as str
+    """
+    if format_output and not format_string:
+        raise ArgumentError("format_string not supplied for format_output option as true")
+
+    _today_dt = datetime.today()
+    curr_wd = _today_dt.isoweekday()  # current weekday (iso, mon - 1)
+    if curr_wd == 1:  # on monday
+        previous_wk_day = _today_dt - timedelta(days=3)  # friday
+        last_wk_day = _today_dt
+    elif curr_wd == 2:  # on tuesday
+        previous_wk_day = _today_dt - timedelta(days=1)  # monday
+        last_wk_day = _today_dt
+    elif curr_wd == 7:  # on sunday
+        last_wk_day = _today_dt - timedelta(days=2)  # friday
+        previous_wk_day = _today_dt - timedelta(days=3)  # thursday
+    elif curr_wd == 6:  # on saturday
+        last_wk_day = _today_dt - timedelta(days=1)  # friday
+        previous_wk_day = _today_dt - timedelta(days=2)  # thursday
+    else:  # on any other day (weekday)
+        previous_wk_day = _today_dt - timedelta(days=1)
+        last_wk_day = _today_dt
+
+    if format_output:
+        return [_dt.strftime(format_string) for _dt in (previous_wk_day, last_wk_day)]
+
+    return previous_wk_day, last_wk_day
 
 
 def get_default_exit_time():
