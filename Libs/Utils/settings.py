@@ -5,7 +5,7 @@ import os
 APP_ID = 6
 APP_NAME = "TradeXCB-OMS"
 EXTENSION = "-BETA"
-App_VERSION = "0.1.7"
+App_VERSION = "0.1.8"
 SITE_LINK = "https://www.trendmyfriend.co.in"
 LOGGING_LEVEL = logging.DEBUG
 adjust_minutes = 2.5  # adjustments on time-frame check delay (check interval = 2.5 minutes less than time-frame)
@@ -20,7 +20,6 @@ DEFAULT_DATA_FILE = os.path.realpath(os.path.join("Libs", "Storage", "DEFAULT_VA
 ORDER_BOOK_LOG_DICT_PATTERN = r"\{.*\}"
 DATETIME_FMT_STRING = "%Y-%m-%d %H:%M:%S"
 DATA_FILES_DIR = os.path.realpath(os.path.join("Libs", "Files", "DataFiles"))
-# TB_DATA_FOLDER = os.path.realpath(os.path.join("Libs", "TimeBasedStrategy", "TB_DataFiles"))
 MIN_HEIGHT = 550 if os.name == "posix" else 450
 INSTRUMENTS_EXPIRY_THRESHOLD = 60  # in days
 DATA_FILES = {
