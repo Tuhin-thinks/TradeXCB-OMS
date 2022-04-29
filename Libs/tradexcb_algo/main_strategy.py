@@ -15,6 +15,7 @@ from Libs.Files import handle_user_details
 from Libs.Files.TradingSymbolMapping import StrategiesColumn
 from Libs.Storage import app_data, manage_local
 from Libs.Utils import settings, exception_handler, calculations
+from Libs.UI.Utils.Time__Profiler import ProfilerContext
 from .TA_Lib import HA
 from .main_broker_api.All_Broker import All_Broker
 
@@ -35,7 +36,6 @@ def fix_values(value, tick_size):
 
 # ------------ order management -----------------
 def slice_calculation(lots_to_exec: int, n_slices: str, freeze_limit: int):
-    print(f"{n_slices=}, {type(n_slices)=}")
     if isinstance(n_slices, str) and n_slices.isdigit() and int(n_slices) > 0:
         n_slices = int(n_slices)
         if lots_to_exec >= n_slices:
@@ -48,6 +48,7 @@ def slice_calculation(lots_to_exec: int, n_slices: str, freeze_limit: int):
     if lots_to_exec // n_slices >= freeze_limit:
         n_slices = math.ceil(lots_to_exec / (freeze_limit - 1))
         ind_slice_size = freeze_limit - 1
+    logger.debug(f"{lots_to_exec=} {n_slices=} {ind_slice_size=}")
     return n_slices, ind_slice_size
 
 
@@ -72,27 +73,32 @@ def place_orders(order_dict: typing.Dict, freeze_limits_dict: typing.Dict, symbo
     order_details_list = []
     for i in range(n_slices):
         new_order = dict(order_dict)
+        to_continue = False
         if ind_slice_size <= lots_to_exec and i < n_slices - 1:
             new_order['quantity'] = new_order['quantity'] * ind_slice_size
             lots_to_exec -= ind_slice_size
+            to_continue = True
         elif lots_to_exec > 0:
             new_order['quantity'] = new_order['quantity'] * lots_to_exec
             lots_to_exec = 0
+            to_continue = True
         if i == (n_slices - 1) and lots_to_exec != 0:  # last iteration
             new_order['quantity'] = new_order['quantity'] * lots_to_exec
             lots_to_exec = 0
+            to_continue = True
 
-        logger.debug(f"Order details: {new_order} :: place_order")
-        order_id, message = this_user['broker'].place_order(**new_order)
-        if order_id:
-            order_details_list.append({"order_id": order_id,
-                                       "order": new_order,
-                                       "quantity": new_order['quantity'],
-                                       "status": "",
-                                       "message": message})
-            logger.info(f"{this_user['Name']} : {order_type_str} Order Placed, Order ID: {order_id}")
-        else:
-            logger.error(f"{this_user['Name']} : {order_type_str} Order Placement Failed, message: {message}")
+        if to_continue:
+            logger.debug(f"Order details: {new_order} :: place_order")
+            order_id, message = this_user['broker'].place_order(**new_order)
+            if order_id:
+                order_details_list.append({"order_id": order_id,
+                                           "order": new_order,
+                                           "quantity": new_order['quantity'],
+                                           "status": "",
+                                           "message": message})
+                logger.info(f"{this_user['Name']} : {order_type_str} Order Placed, Order ID: {order_id}")
+            else:
+                logger.error(f"{this_user['Name']} : {order_type_str} Order Placement Failed, message: {message}")
     return order_details_list
 
 
@@ -461,8 +467,9 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                                                                       this_instrument['status'] == 0):
                     this_instrument['run_done'] = 1
                     logger.info(f"Running the {process_name} for {this_instrument['tradingsymbol']}")
-                    df = main_broker.get_data(this_instrument['instrument_token'],
-                                              str(int(this_instrument['timeframe'])), 'minute', from_dt, to_dt)[0]
+                    with ProfilerContext("Getting historical data"):
+                        df = main_broker.get_data(this_instrument['instrument_token'],
+                                                  str(int(this_instrument['timeframe'])), 'minute', from_dt, to_dt)[0]
 
                     df = df[df.index < datetime.now().replace(microsecond=0, second=0)]
                     time_df_col = df.index

@@ -1,2 +1,1 @@
 user_id,tradingsymbol,exchange,quantity,timeframe,entry_price,entry_time,exit_price,exit_time,target_price,sl_price,Row_Type,profit,ltp,Trend
-yash,NIFTY22APR17500CE,NFO,2500,3,0.35,2022-04-28 14:21:12.146592,,,15.35,-9.65,T,2.500000000000002,0.4,BUY

@@ -99,7 +99,6 @@ class OMSModel(QtCore.QAbstractTableModel):
             self.beginResetModel()
             del self.__data
             self.__data = deepcopy(data_dict)
-            print("From UI model::", self.__data)
             self.__key_list = list(data_dict.keys())
             self.endResetModel()
 
