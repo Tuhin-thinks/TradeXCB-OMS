@@ -75,3 +75,11 @@ API_DETAILS_COLUMNS = ['Name', 'Stock Broker Name', 'apiKey', 'apiSecret', 'acco
 
 OMS_TABLE_COLUMNS = ["Instrument", "Entry Price", "Entry Time", "Exit Price", "Exit Time", "Order Type", "Quantity",
                      "Product Type", "Stoploss", "Target", "Order Status", "instrument_df_key", "Close Position?"]
+
+broker_api_fields = {
+    "zerodha": ["apiKey", "apiSecret", "accountUserName", "accountPassword", "totp_secret"],
+    "angel": ["apiKey", "accountUserName", "accountPassword"],
+    "iifl": ["apiKey", "apiSecret", "source", "host", "market_appkey", "market_secretkey"],
+    "alice blue": ["accountUserName", "accountPassword", "securityPin", "apiSecret", "apiKey"],
+    "common_fields": ["Stock Broker Name", "No of Lots", "Slices", "Name"]
+}

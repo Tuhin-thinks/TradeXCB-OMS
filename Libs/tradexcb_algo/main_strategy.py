@@ -87,7 +87,7 @@ def place_orders(order_dict: typing.Dict, freeze_limits_dict: typing.Dict, symbo
             lots_to_exec = 0
             to_continue = True
 
-        if to_continue:
+        if to_continue:  # flag to check whether to continue or not
             logger.debug(f"Order details: {new_order} :: place_order")
             order_id, message = this_user['broker'].place_order(**new_order)
             if order_id:
@@ -335,8 +335,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         return
     logger.info(f"Starting Strategy")
     final_df = pd.DataFrame(columns=list(instruments_df.columns) + ['ltp', 'tradingsymbol'])
-
-    logger.info(f"{main_broker.latest_ltp}")
     # load freeze limits from database
     freeze_limits_dict: typing.Dict[str, typing.Dict] = json.loads(
         manage_local.get_user_preference_table("freeze_limits"))
@@ -358,6 +356,30 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                  'entry_time', 'exit_price', 'exit_time', 'target_price', 'sl_price', 'Row_Type', 'profit']
         final_df = final_df[_cols]
         final_df['Trend'] = np.where(final_df['multiplier'] == 1, 'BUY', 'SELL')
+
+        # ---------- generate/update positions file ----------
+        final_all_user_df = pd.DataFrame()
+        for each_user in users_df_dict:
+            try:
+                this_user = users_df_dict[each_user]
+                if this_user['broker'] is None:
+                    continue
+                no_of_lots = this_user['No of Lots']
+                final_df_temp = final_df.copy(deep=True)
+                final_df_temp['quantity'] = final_df_temp['quantity'] * no_of_lots
+                final_df_temp['profit'] = (final_df_temp['ltp'] - final_df_temp['entry_price']) * final_df_temp[
+                    'quantity'] * final_df_temp['multiplier']
+                final_df_temp['user_id'] = this_user['accountUserName']
+                final_all_user_df = final_all_user_df.append(final_df_temp, ignore_index=True)
+            except Exception as e:
+                logger.critical(f"{sys.exc_info()}", exc_info=True)
+                manager_dict['algo_error'] = f"{process_name} failed, Error : {sys.exc_info()}"
+                manager_dict['algo_running'] = False
+                return
+
+        final_all_user_df.to_csv(
+            settings.DATA_FILES.get('POSITIONS_FILE_PATH'))  # TODO PNL of all users by the lot executed by the user
+        # ---------- [DONE] generate/update positions file ----------
 
         order_book_dict = dict()
         for each_user in users_df_dict:
@@ -392,8 +414,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
             row_data = instruments_df_dict[each_key]
             entry_time = row_data['entry_time']
             entry_price = row_data['entry_price']
-            if entry_time is None or entry_price is None:
-                continue
+            # if entry_time is None or entry_price is None:
+            #     continue
             if isinstance(entry_time, datetime):
                 if entry_time.date() == datetime.now().date():
                     orderbook_export_data["Entry Time"].append(entry_time.strftime("%H:%M:%S"))
@@ -402,7 +424,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
             elif isinstance(entry_time, str):
                 orderbook_export_data["Entry Time"].append(entry_time)
             else:
-                continue  # for NoneType don't show them in orderbook
+                orderbook_export_data["Entry Time"].append(entry_time)  # todo: verify this
+                # continue  # for NoneType don't show them in orderbook
             orderbook_export_data["Instrument"].append(row_data['tradingsymbol'])
             orderbook_export_data["Entry Price"].append(entry_price)
             orderbook_export_data["Exit Price"].append(row_data['exit_price'])
@@ -860,45 +883,6 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                 manager_dict['algo_error'] = f"Error in Strategy Function, Error: {sys.exc_info()}"
                 manager_dict['algo_running'] = False
                 return
-
-        # ------------- create positions df -----------------
-        positions_df = pd.DataFrame(columns=app_data.POSITIONS_COLUMNS)
-        # iterate through all users
-        for unique_username, each_user_row in users_df_dict.items():
-            no_of_lots = each_user_row['No of Lots']
-
-            for each_key, row in instruments_df_dict.items():
-                time_frame = row['timeframe']
-                row_type = row['Row_Type']
-                tradingsymbol = row['tradingsymbol']
-                exchange = row['exchange']
-                lot_size = row['lot_size']
-                multiplier = row['multiplier']
-                ltp = row['ltp']
-                target_price = row['target_price']
-                sl_price = row['sl_price']
-                entry_price = row['entry_price']
-                entry_time = row['entry_time']
-                exit_price = row['exit_price']
-                exit_time = row['exit_time']
-                _trend = row['transaction_type']  # todo: check if this right thing to do
-
-                _quantity = no_of_lots * lot_size
-                try:
-                    profit = (ltp - entry_price) * multiplier * no_of_lots
-                except TypeError:
-                    continue
-
-                _row_dict = {'tradingsymbol': tradingsymbol, 'exchange': exchange, 'quantity': _quantity,
-                             'timeframe': time_frame, 'multiplier': multiplier, 'entry_price': entry_price,
-                             'entry_time': entry_time, 'exit_price': exit_price, 'exit_time': exit_time,
-                             'target_price': target_price, 'sl_price': sl_price, 'Row_Type': row_type,
-                             'profit': profit, 'ltp': ltp, "user_id": unique_username, "Trend": _trend}
-                temp_df = pd.DataFrame([_row_dict], columns=list(positions_df.columns))
-                positions_df = pd.concat([positions_df, temp_df], ignore_index=True)
-
-        positions_df.to_csv(settings.DATA_FILES.get('POSITIONS_FILE_PATH'), index=False)
-        # ----------------- end of create positions df -----------------
 
 
 if __name__ == '__main__':

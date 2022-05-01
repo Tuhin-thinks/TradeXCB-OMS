@@ -1,10 +1,11 @@
 import typing
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
 from Libs.Utils import settings
 from Libs.Storage import app_data
+from Libs.UI.Utils.field_validator import is_valid_broker_field
 
 
 class Delegate_Slices(QtWidgets.QStyledItemDelegate):
@@ -119,22 +120,42 @@ class Model_API_Det(QtCore.QAbstractTableModel):
         return len(self.header_labels)
 
     def flags(self, index: QtCore.QModelIndex) -> Qt.ItemFlags:
+        column_name = self.header_labels[index.column()]
+        broker_name = self.data_list[index.row()][self.header_labels.index("Stock Broker Name")]
+        is_generic_field = column_name in app_data.broker_api_fields['common_fields']
+        if not is_generic_field and not is_valid_broker_field(broker_name, column_name):
+            return Qt.NoItemFlags
         return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid():
+            column_name = self.header_labels[index.column()]
+            broker_name = self.data_list[index.row()][self.header_labels.index("Stock Broker Name")]
+            is_generic_field = column_name in app_data.broker_api_fields['common_fields']
             if role == Qt.DisplayRole:
                 item = self.data_list[index.row()][index.column()]
                 if item is None:
                     return None
-                elif index.column() not in (0, 1, self.header_labels.index("No of Lots"), self.header_labels.index("Slices")):
+                elif (not is_generic_field) and is_valid_broker_field(broker_name, column_name):
                     return "*" * len(item)
                 else:
-                    return item
+                    if is_valid_broker_field(broker_name, column_name):
+                        return item
+                    else:
+                        return "N/A"
             elif role == Qt.TextAlignmentRole:
                 return Qt.AlignCenter
             elif role == Qt.EditRole:
                 return self.data_list[index.row()][index.column()]
+            elif role == Qt.BackgroundRole:
+                if not is_generic_field and not is_valid_broker_field(broker_name, column_name):
+                    return QtGui.QColor(Qt.lightGray)
+            elif role == Qt.ForegroundRole:
+                if not is_generic_field and not is_valid_broker_field(broker_name, column_name):
+                    return QtGui.QColor(Qt.darkGray)
+            elif role == Qt.ToolTipRole:
+                if not is_generic_field and not is_valid_broker_field(broker_name, column_name):
+                    return "This field is not required for this broker"
         return None
 
     def setData(self, index: QtCore.QModelIndex, value: typing.Any, role: int = ...) -> bool:

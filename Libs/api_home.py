@@ -271,8 +271,31 @@ class ApiHome(QtWidgets.QMainWindow):
         pushbutton_save_details.setText("Save Details")
         pushbutton_save_details.setFixedSize(QtCore.QSize(100, 30))
 
+        self.frame_export_load = QtWidgets.QFrame(self.ui.frame_multi_client_button_frame)
+        self.frame_export_load.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_export_load.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.frame_export_load.setLineWidth(0)
+        self.frame_export_load.setObjectName("frame_export_load")
+
+        self.frame_export_load.layout = QtWidgets.QGridLayout(self.frame_export_load)
+        self.frame_export_load.layout.setContentsMargins(3, 5, 3, 5)
+        self.frame_export_load.layout.setSpacing(5)
+        self.frame_export_load.layout.setObjectName("layout_export_load")
+
+        pushbutton_export_details = QtWidgets.QPushButton(self.frame_export_load)
+        pushbutton_export_details.setObjectName("pushbutton_export_details")
+        pushbutton_export_details.setText("Export Details")
+        pushbutton_export_details.setFixedSize(QtCore.QSize(110, 30))
+
+        pushbutton_load_details = QtWidgets.QPushButton(self.frame_export_load)
+        pushbutton_load_details.setObjectName("pushbutton_export_details")
+        pushbutton_load_details.setText("Load Details")
+        pushbutton_load_details.setFixedSize(QtCore.QSize(110, 30))
+
         pushbutton_save_details.setPalette(self.palette())
         pushbutton_add_client.setPalette(self.palette())
+        pushbutton_export_details.setPalette(self.palette())
+        pushbutton_load_details.setPalette(self.palette())
 
         h_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
@@ -282,10 +305,16 @@ class ApiHome(QtWidgets.QMainWindow):
         self.ui.frame_multi_client_button_frame.layout.setObjectName("layout_multi_client_button_frame")
         self.ui.frame_multi_client_button_frame.layout.addWidget(pushbutton_add_client, 0, 0, 1, 1)
         self.ui.frame_multi_client_button_frame.layout.addWidget(pushbutton_save_details, 0, 1, 1, 1)
-        self.ui.frame_multi_client_button_frame.layout.addItem(h_spacer, 0, 2, 1, 1)
+        self.ui.frame_multi_client_button_frame.layout.addWidget(self.frame_export_load, 0, 2, 1, 1)
+        self.ui.frame_multi_client_button_frame.layout.addItem(h_spacer, 0, 3, 1, 1)
+
+        self.frame_export_load.layout.addWidget(pushbutton_export_details, 0, 0, 1, 1)
+        self.frame_export_load.layout.addWidget(pushbutton_load_details, 0, 1, 1, 1)
 
         pushbutton_add_client.clicked.connect(self.add_client_account)
         pushbutton_save_details.clicked.connect(self.save_client_details)
+        pushbutton_export_details.clicked.connect(self.export_client_details)
+        pushbutton_load_details.clicked.connect(self.import_client_details)
 
         # ------------------- multi client view -------------------
         self.multi_client_view = API_Det_TableView.API_Det_TableView()
@@ -296,6 +325,22 @@ class ApiHome(QtWidgets.QMainWindow):
     def add_client_account(self):
         self.multi_client_view.insertRow()
         self.multi_client_view.update()
+
+    def import_client_details(self):
+        # open file dialog to get file path
+        prev_api_import_dir = manage_local.get_user_preference_table("api_import_dir") or ""
+        file_path = QtWidgets.QFileDialog.getOpenFileName(self, "Import Client Details", prev_api_import_dir,
+                                                          "CSV Files (*.csv)")[0]
+        if file_path:
+            manage_local.set_user_preference_table({"api_import_dir": os.path.dirname(file_path)})
+
+            # create list of dictionary from csv file
+            data_rows, message = handle_user_details.import_user_api_details(file_path)
+            if data_rows:
+                # add data to table
+                self.multi_client_view.set_data(data_rows)
+            else:
+                Interact.show_message(self, "Import Error", message, "error")
 
     def load_client_details(self):
         data_rows = handle_user_details.read_user_api_details()
@@ -308,6 +353,20 @@ class ApiHome(QtWidgets.QMainWindow):
             handle_user_details.clear_api_details()
             for row in data_rows:
                 handle_user_details.save_user_api_details(row['Name'], row)
+            logger.info("Saved API Details successfully")
+            Interact.show_message(self, "Save Success", "API details saved successfully", "info")
+
+    def export_client_details(self):
+        data_rows = self.multi_client_view.get_rows()
+        if isinstance(data_rows, list):
+            # open file dialog to accept file name
+            prev_export_dir_path = manage_local.get_user_preference_table("api_export_dir") or ""
+            file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Export Client Details", prev_export_dir_path,
+                                                                 "CSV Files (*.csv)")
+            if file_name:
+                threading.Thread(target=handle_user_details.export_user_api_details,
+                                 args=(data_rows, file_name)).start()
+                manage_local.set_user_preference_table({"api_export_dir": os.path.dirname(file_name)})
 
     def clear_future_logs(self):
         """Clears log for UI/view only"""
@@ -622,6 +681,7 @@ class ApiHome(QtWidgets.QMainWindow):
                         log_text = reader.read()
                     writer.write(f'----({os.path.basename(log_file)})----\n')
                     writer.write(log_text)
+
         # --------------------------------------------------
         try:
             time_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

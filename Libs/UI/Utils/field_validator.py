@@ -3,6 +3,7 @@ import string
 from email_validator import validate_email, EmailNotValidError
 
 from Libs.UI import user_login, Interact, api_inp_dialog
+from Libs.Storage.app_data import broker_api_fields
 
 
 def validate_reg_inp(user_name, f_name, l_name, email_id, password, phone, security_string, parent_ui: "user_login.Ui_MainWindow"):
@@ -128,3 +129,17 @@ def validate_api_inp(parent_ui: "api_inp_dialog", parent):
         return
     details_dict["Security Pin"] = sec_pin
     return details_dict
+
+
+def is_valid_broker_field(broker_name: str, column_name: str):
+    if not broker_name:  # for empty broker name show all the fields
+        return True
+    broker_name = broker_name.lower()
+    fields_list = broker_api_fields[broker_name]
+    common_fields = broker_api_fields["common_fields"]
+    if column_name in fields_list:
+        return True
+    elif column_name in common_fields:
+        return True
+    else:
+        return False
