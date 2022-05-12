@@ -38,4 +38,4 @@
 - [ ] Upload OHLC data to MYSQL instead of sqlite3 (api)
 - [ ] Add filter logic and candle building logic to API (api)
 - [ ] Prepare iDelta (cli) for testing with api connection (idelta+api)
-- 
+- [ ] SL and Target fields are mandatory.

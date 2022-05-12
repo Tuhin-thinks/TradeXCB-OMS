@@ -91,10 +91,12 @@ def place_orders(order_dict: typing.Dict, freeze_limits_dict: typing.Dict, symbo
             logger.debug(f"Order details: {new_order} :: place_order")
             order_id, message = this_user['broker'].place_order(**new_order)
             if order_id:
+                order_status = this_user['broker'].get_order_status(order_id)[0]
+                logger.debug(f"Order status: {order_status} [line 95]")
                 order_details_list.append({"order_id": order_id,
                                            "order": new_order,
                                            "quantity": new_order['quantity'],
-                                           "status": "",
+                                           "status": order_status,
                                            "message": message})
                 logger.info(f"{this_user['Name']} : {order_type_str} Order Placed, Order ID: {order_id}")
             else:
@@ -123,9 +125,12 @@ def place_market_orders(order_dict: typing.Dict, this_user: typing.Dict, order_d
         order_status, status_message = broker.get_order_status(order_id=order_id)
         order_details['status'] = order_status
         order_details['message'] = status_message
+        logger.debug(f"{this_user['Name']} : {order_details['order']['order_type']} Order Completed, order status: {order_status}, Order ID: {order_id}")
         if order_status == "COMPLETE":
+            new_order_details_list.append(order_details)
             continue
         elif order_status == "REJECTED":
+            new_order_details_list.append(order_details)
             logger.info(f"Order Rejected for {this_user['Name']} Order_id {order_id}")
         else:
             broker.cancel_order(order_id=order_id)
@@ -139,7 +144,7 @@ def place_market_orders(order_dict: typing.Dict, this_user: typing.Dict, order_d
                 new_order_details_list.append({"order_id": order_id,
                                                "order": new_order,
                                                "quantity": new_order['quantity'],
-                                               "status": "",
+                                               "status": broker.get_order_status(order_id=order_id)[0],
                                                "message": message})
                 logger.info(f"{this_user['Name']}: Market Order Placed, Order_id:{order_id}")
             else:
@@ -162,6 +167,7 @@ def place_close_orders(order_dict: typing.Dict, this_user: typing.Dict, order_de
         order_status, status_message = broker.get_order_status(order_id=order_id)
         order_details_list[index]['status'] = order_status
         order_details_list[index]['message'] = status_message
+        logger.debug(f"{this_user['Name']} : {order_details['order']['order_type']} Order Status: {order_status}, Order ID: {order_id}")
         if order_status == "COMPLETE":
             broker.cancel_order(order_id=order_id)
         elif order_status == "PENDING":
@@ -173,7 +179,7 @@ def place_close_orders(order_dict: typing.Dict, this_user: typing.Dict, order_de
             if order_id:
                 order_details_list[index]['order_id'] = order_id
                 order_details_list[index]['order'] = new_order_dict
-                order_details_list[index]['status'] = ""
+                order_details_list[index]['status'] = broker.get_order_status(order_id=order_id)[0]
                 order_details_list[index]['message'] = message
                 logger.info(f"{this_user['Name']}: Close Order Placed, Order_id:{order_id}")
             else:
@@ -438,8 +444,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
             orderbook_export_data["Order Type"].append(row_data['order_type'])
             orderbook_export_data["Quantity"].append(row_data['quantity'])
             orderbook_export_data["Product Type"].append(row_data['product_type'])
-            orderbook_export_data["Stoploss"].append(row_data['stoploss'])
-            orderbook_export_data["Target"].append(row_data['target'])
+            orderbook_export_data["Stoploss"].append(row_data['sl_price'])
+            orderbook_export_data["Target"].append(row_data['target_price'])
 
             # concatenate order status for all users
             order_status = ""
@@ -458,17 +464,18 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         manager_dict['orderbook_data'] = orderbook_export_data  # pass the dictionary to the UI
 
         # --------------- look for to be closed positions ---------------
-        while True:
-            try:
-                row_key = cancel_orders_queue.get_nowait()
-                if row_key is not None:
-                    row_data = instruments_df_dict[row_key]
-                    row_data['close_positions'] = 1  # close the positions
-                    logger.debug("closing position for row_key : {}".format(row_key))
-                else:
+        with ProfilerContext("Look for to be closed positions"):
+            while True:
+                try:
+                    row_key = cancel_orders_queue.get_nowait()
+                    if row_key is not None:
+                        row_data = instruments_df_dict[row_key]
+                        row_data['close_positions'] = 1  # close the positions
+                        logger.debug("closing position for row_key : {}".format(row_key))
+                    else:
+                        break
+                except Exception as e:
                     break
-            except Exception as e:
-                break
         # --------------- run the main strategy ---------------
         curr_date = datetime.now()
         process_name = 'Main Strategy'
