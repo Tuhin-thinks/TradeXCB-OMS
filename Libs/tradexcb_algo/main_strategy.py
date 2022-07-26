@@ -572,7 +572,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         logger.info(f" In Sell Loop. for {this_instrument['tradingsymbol']}")
                         logger.info(f" Sell Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
-                        this_instrument['multiplier'] = 1
+                        this_instrument['multiplier'] = -1
 
                         this_instrument['entry_price'] = fix_values(
                             df['HA_close'].tail(1).values[0] * (1 - this_instrument['sell_ltp_percent'] / 100),
