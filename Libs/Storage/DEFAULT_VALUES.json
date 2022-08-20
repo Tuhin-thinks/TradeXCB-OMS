@@ -1,0 +1,104 @@
+{
+   "transaction_type": {
+      "default_value": "Sell",
+      "dropdown": true,
+      "dropdown_values": [
+        "Buy",
+        "Sell"
+      ]
+   },
+   "buy_ltp_percent": {
+      "default_value": 0.0,
+      "dropdown": false
+   },
+   "sell_ltp_percent": {
+      "default_value": 0.0,
+      "dropdown": false
+   },
+   "order_type": {
+      "default_value": "LIMIT",
+      "dropdown": true,
+      "dropdown_values": [
+        "LIMIT",
+        "MARKET"
+      ]
+   },
+   "product_type": {
+      "default_value": "MIS",
+      "dropdown": true,
+      "dropdown_values": [
+        "MIS",
+        "NRML"
+      ]
+   },
+   "wait_time": {
+      "default_value": 5.0,
+      "dropdown": false
+   },
+   "Symbol Name": {
+      "default_value": "NIFTY",
+      "dropdown": false
+   },
+   "expiry": {
+      "default_value": "",
+      "dropdown": false
+   },
+   "exchange": {
+      "default_value": "NFO",
+      "dropdown": true,
+      "dropdown_values": [
+      "NSE",
+      "NFO",
+      "CDS",
+      "MCX"
+      ]
+   },
+   "instrument": {
+      "default_value": null,
+      "dropdown": false,
+      "dropdown_values": []
+   },
+   "stoploss_type": {
+      "default_value": "Value",
+      "dropdown": true,
+      "dropdown_values": [
+         "Value",
+         "Percentage",
+         "No SL Order"
+      ]
+   },
+   "stoploss": {
+      "default_value": 0,
+      "dropdown": false
+   },
+   "tsl_type": {
+      "default_value": "Value",
+      "dropdown": true,
+      "dropdown_values": [
+         "Value",
+         "Percentage"
+      ]
+   },
+   "tsl": {
+      "default_value": 0,
+      "dropdown": false
+   },
+   "target_type": {
+      "default_value": "Value",
+      "dropdown": true,
+      "dropdown_values": [
+         "Value",
+         "Percentage",
+         "No Target Order"
+      ]
+   },
+   "target": {
+      "default_value": 0,
+      "dropdown": false
+   },
+   "timeframe": {
+      "default_value": 1,
+      "dropdown": true,
+      "dropdown_values": [1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180]
+   }
+}

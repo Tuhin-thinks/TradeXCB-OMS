@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1122</width>
+    <height>612</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1122</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>TrendMyFriend - API Details Window</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QTabWidget::pane {
+	border: 1px solid white;
+	top:-1px;
+	background: rgb(245, 245, 245);
+}
+QTabBar::tab {
+	background: rgb(230, 230, 230);
+	padding: 15px;
+} 
+QTabBar::tab:selected {
+	background: rgb(245, 245, 245);
+	border: 2px solid lightgrey;
+	border-right: none;
+	margin-right: -1px;
+}
+QTabBar::tab:!selected{
+	margin-left: 5px;
+	border-right: 2px solid lightgrey;
+}</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="tabPosition">
+      <enum>QTabWidget::West</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>User Details</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../../../BACKUPS/backup_pyqt5-version/Libs/UI/icons/icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>

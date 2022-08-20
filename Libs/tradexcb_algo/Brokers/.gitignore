@@ -1,0 +1,54 @@
+.idea
+# Virtual environment
+broker-mapping-env
+
+# credentials
+credentials.json
+
+# Temporary files
+__pycache__
+
+# VS Code configurations
+.vscode
+
+# Pytest Cache
+.pytest_cache
+
+# test runner
+test_runner.py
+
+# logs
+logs
+
+#five paisa file for test
+five_paisa_print.py
+
+#main_borker folder 
+main_broker_api
+
+#Edelweiss file
+edelweiss_test.py
+
+#mosl module'
+mosl_module 
+mosl_test.py
+
+angel_test.py
+
+
+
+
+#extra added file 
+instruments.zip
+mfInstruments.zip
+readme.txt
+
+mfInstruments
+instruments
+
+
+#new add file
+angel_master_file.csv
+angel_web_test.py
+
+**credentials.json

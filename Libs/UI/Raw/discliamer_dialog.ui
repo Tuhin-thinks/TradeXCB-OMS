@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>905</width>
+    <height>608</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">#Dialog{
+	background-color: qlineargradient(spread:reflect, x1:0, y1:0, x2:1, y2:1, stop:0.0736842 rgba(93, 93, 93, 255), stop:0.342105 rgba(5, 5, 5, 255), stop:0.526316 rgba(0, 0, 0, 255), stop:0.747368 rgba(0, 0, 0, 255), stop:0.915789 rgba(78, 78, 78, 255));
+}</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QFrame" name="frame_heading">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_heading">
+           <property name="styleSheet">
+            <string notr="true">QLabel{
+	color: red;
+	font: 75 20pt &quot;Serif&quot;;
+}</string>
+           </property>
+           <property name="text">
+            <string>Disclaimer</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frame_body_holder">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QScrollArea" name="scrollArea">
+           <property name="styleSheet">
+            <string notr="true">#scrollAreaWidgetContents{
+	background-color: transparent;
+}
+#scrollArea{
+	background-color: transparent;
+}
+
+QLabel{
+	background-color: transparent;
+	color: white;
+}
+/* ----------------- scrollbar stylesheet ---------------- */
+QScrollBar:vertical {
+    border: 1px solid transparent;
+    background: transparent;
+    width:15px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+    background: #7676F8;
+    min-height: 0px;
+}
+QScrollBar::add-line:vertical {
+    background: #7676F8;
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+QScrollBar::sub-line:vertical {
+    background: #7676F8;
+    height: 0 px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+QScrollBar:horizontal {
+    border: 1px solid transparent;
+    background: transparent;
+    height: 15px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:horizontal {
+    background: #7676F8;
+    min-width: 5px;
+}
+QScrollBar::add-line:horizontal {
+    /*border: 2px solid grey;*/
+    background: #7676F8;
+    width: 0px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    background: #7676F8;
+    width: 0px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>851</width>
+              <height>497</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QLabel" name="label_disclaimer_body">
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman','serif'; font-size:12pt;&quot;&gt;The data information was acquired from and is dependent on sources, Algo beacon consider to be credible and cannot guarantee its correctness, and it may be incomplete or condensed data as per the logics we are using. All logics and estimations are based on our best efforts and knowledge as of the report’s publications date and our subject to change at without notice.&lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman','serif'; font-size:11pt;&quot;&gt;This website content is for informational purposes only and none of the stock information, Trading in stocks, options and other securities involves risk. The risk of loss in trading securities can be substantial. The risk involved with trading stock; options may not be satisfactory for all investors.&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman','serif'; font-size:11pt;&quot;&gt;The information presented in the educational material is not intended for any investment decisions, nor should be construed as advice designed to meet the investment needs of any particular investor. it is very important to do your own analysis before making any investment based on your own personal circumstances.&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman','serif'; font-size:12pt; font-weight:600;&quot;&gt;Note&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-family:'Times New Roman','serif'; font-size:14pt;&quot;&gt;We are not a SEBI Registered Advisor; therefore, we accept no responsibility for any trading gains or losses, Please seek advice from your financial advisor.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame_confirm">
+               <property name="styleSheet">
+                <string notr="true">QLabel{
+	color: white;
+}
+QCheckBox {
+   border: none;
+   color: white;
+}
+QCheckBox::indicator:unchecked{
+	border: 2px solid white;
+	width: 15px;
+	height: 15px;
+}
+QCheckBox::indicator:checked{
+	border: 2px solid white;
+	width: 15px;
+	height: 15px;
+	image: url(:/icons/check_icon.png);
+}</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <widget class="QFrame" name="frame_2">
+                  <property name="frameShape">
+                   <enum>QFrame::NoFrame</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_4">
+                   <item>
+                    <widget class="QCheckBox" name="checkBox_no_show_disclaimer">
+                     <property name="text">
+                      <string>don't show this again</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButton_confirm_discliamer">
+                     <property name="minimumSize">
+                      <size>
+                       <width>50</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>160</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton{
+	background-color: rgb(0, 150, 225);
+	border-radius: 5px;
+}
+
+QPushButton:pressed{
+	border-radius: 2px;
+	margin-top: 5px;
+	margin-bottom: -5px;
+}</string>
+                     </property>
+                     <property name="text">
+                      <string>I understand</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,0 +1,38 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>check-white.png</file>
+    <file>close-white.png</file>
+    <file>up-arrow-hover.png</file>
+    <file>down-arrow-hover.png</file>
+    <file>down-arrow.png</file>
+    <file>up-arrow.png</file>
+    <file>left-arrow.png</file>
+    <file>up-arrow-white.png</file>
+    <file>check_icon.png</file>
+    <file>stop.png</file>
+    <file>algoBeaconLogo.png</file>
+    <file>filter.png</file>
+    <file>refresh.png</file>
+    <file>save.png</file>
+    <file>minus.png</file>
+    <file>callout.png</file>
+    <file>close.png</file>
+    <file>start.png</file>
+    <file>down-arrow-white.png</file>
+    <file>down-arrow-dark.png</file>
+    <file>add.png</file>
+    <file>delete.png</file>
+    <file>login.png</file>
+    <file>exit.png</file>
+    <file>export.png</file>
+    <file>copy.png</file>
+    <file>clear.png</file>
+    <file>error.png</file>
+    <file>trading.png</file>
+    <file>message.png</file>
+    <file>warning.png</file>
+    <file>tick.png</file>
+    <file>submit.png</file>
+    <file>edit.png</file>
+  </qresource>
+</RCC>
