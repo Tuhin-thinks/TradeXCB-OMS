@@ -1,13 +1,12 @@
+import hashlib
+import json
 from datetime import datetime
 
 import numpy as np
-from Libs.Utils import settings
 import pandas as pd
-from Libs.globals import *
-import hashlib
-import json
 
 from Libs.Utils.exception_handler import getAlgoLogger
+from Libs.globals import *
 
 logger = getAlgoLogger(__name__)
 
