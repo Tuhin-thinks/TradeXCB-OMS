@@ -1,5 +1,4 @@
 import multiprocessing
-import os
 import sys
 import time
 import typing
@@ -10,15 +9,12 @@ import numpy as np
 import openpyxl
 import pandas as pd
 from pandas.core.common import SettingWithCopyWarning
-import talib
 
 from Libs.Files import handle_user_details
 from Libs.Files.TradingSymbolMapping import StrategiesColumn
 from Libs.Storage import app_data
 from Libs.Utils import settings, exception_handler, calculations
-from .TA_Lib import HA
 from .main_broker_api.All_Broker import All_Broker
-from .static import ta_lib_ext
 
 pd.set_option('expand_frame_repr', False)
 warnings.simplefilter(action='ignore', category=FutureWarning)
