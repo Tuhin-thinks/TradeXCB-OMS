@@ -280,8 +280,6 @@ class StrategyViewModel(QtCore.QAbstractTableModel):
             _column_name = self.header_labels[index.column()]
             symb_model_index = self.index(index.row(), self.header_labels.index('Symbol Name'))
             instrument_model_index = self.index(index.row(), self.header_labels.index('instrument'))
-            stoploss_model_index = self.index(index.row(), self.header_labels.index('stoploss'))
-            target_model_index = self.index(index.row(), self.header_labels.index('target'))
             expiry_index = self.index(index.row(), self.header_labels.index('expiry'))
 
             if _column_name == 'Symbol Name':
@@ -291,25 +289,10 @@ class StrategyViewModel(QtCore.QAbstractTableModel):
                 self.dataChanged.emit(symb_model_index, symb_model_index, (QtCore.Qt.DisplayRole,))
             elif _column_name == 'expiry':
                 self.dataChanged.emit(instrument_model_index, instrument_model_index, (QtCore.Qt.DisplayRole,))
-            elif _column_name == 'stoploss_type':
-                self.dataChanged.emit(stoploss_model_index, stoploss_model_index, (QtCore.Qt.DisplayRole,))
-            elif _column_name == 'target_type':
-                self.dataChanged.emit(target_model_index, target_model_index, (QtCore.Qt.DisplayRole,))
             return True
         return False
 
     def flags(self, index):
-        col_index = index.column()
-        row_index = index.row()
-        if self.header_labels[col_index] == "stoploss":
-            data__stoploss_type = self._data[row_index][self.header_labels.index('stoploss_type')]
-            if data__stoploss_type == "No SL Order":
-                return QtCore.Qt.ItemIsSelectable
-        if self.header_labels[col_index] == "target":
-            data__target_type = self._data[row_index][self.header_labels.index('target_type')]
-            if data__target_type == "No Target Order":
-                return QtCore.Qt.ItemIsSelectable
-
         return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def insert_row(self, data, position, rows=1):
