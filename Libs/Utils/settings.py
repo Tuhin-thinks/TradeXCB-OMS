@@ -3,9 +3,9 @@ import random
 import os
 
 APP_ID = 4  # TradeXCB
-APP_NAME = "TradeXCB"
+APP_NAME = "TradeXCB-OMS"
 EXTENSION = "-BETA"
-App_VERSION = "0.1.10"
+App_VERSION = "0.1.9"
 SITE_LINK = "https://www.trendmyfriend.co.in"
 LOGGING_LEVEL = logging.DEBUG
 adjust_minutes = 2.5  # adjustments on time-frame check delay (check interval = 2.5 minutes less than time-frame)

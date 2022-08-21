@@ -65,7 +65,7 @@ numerical_columns = ['price_ce', 'vwap_ce', 'price_pe', 'vwap_pe', 'future_vwap'
                      'change in iv_ce', 'change in iv_pe', 'change in price_ce', 'change in price_pe',
                      'change in theta_ce', 'change in theta_pe']
 
-POSITIONS_COLUMNS = ['user_id', 'tradingsymbol', 'exchange', 'quantity', 'timeframe', 'entry_price',
+POSITIONS_COLUMNS = ['user_id', 'tradingsymbol', 'exchange', 'quantity', 'entry_price',
                      'entry_time', 'exit_price', 'exit_time', 'target_price', 'sl_price', 'Row_Type', 'profit', 'ltp',
                      'Trend']
 

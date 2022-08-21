@@ -184,6 +184,10 @@ class Ui_MainWindow(object):
         self.frame_3.setObjectName("frame_3")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.frame_3)
         self.gridLayout_2.setObjectName("gridLayout_2")
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.gridLayout_2.addItem(spacerItem, 0, 0, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.gridLayout_2.addItem(spacerItem1, 2, 0, 1, 1)
         self.frame_8 = QtWidgets.QFrame(self.frame_3)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -211,12 +215,28 @@ class Ui_MainWindow(object):
         self.label_logo.setPixmap(QtGui.QPixmap("Raw/../icons/tradexcb_logo.png"))
         self.label_logo.setScaledContents(True)
         self.label_logo.setObjectName("label_logo")
-        self.gridLayout.addWidget(self.label_logo, 0, 0, 1, 1)
-        self.gridLayout_2.addWidget(self.frame_8, 1, 0, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        self.gridLayout_2.addItem(spacerItem, 0, 0, 1, 1)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        self.gridLayout_2.addItem(spacerItem1, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.label_logo, 0, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
+        self.frame_4 = QtWidgets.QFrame(self.frame_8)
+        self.frame_4.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_4.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_4.setObjectName("frame_4")
+        self.gridLayout_23 = QtWidgets.QGridLayout(self.frame_4)
+        self.gridLayout_23.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_23.setSpacing(0)
+        self.gridLayout_23.setObjectName("gridLayout_23")
+        self.label_info = QtWidgets.QLabel(self.frame_4)
+        self.label_info.setStyleSheet("#label_info{\n"
+"    padding-top: 15ex;\n"
+"    color: #b2b2b2;\n"
+"    font: 75 18pt \"FreeSerif\";\n"
+"    font-weight: bold;\n"
+"}")
+        self.label_info.setScaledContents(True)
+        self.label_info.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_info.setObjectName("label_info")
+        self.gridLayout_23.addWidget(self.label_info, 0, 0, 1, 1, QtCore.Qt.AlignHCenter)
+        self.gridLayout.addWidget(self.frame_4, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.frame_8, 1, 0, 1, 1, QtCore.Qt.AlignVCenter)
         self.verticalLayout.addWidget(self.frame_3)
         self.horizontalLayout.addWidget(self.frame_left)
         self.line = QtWidgets.QFrame(self.centralwidget)
@@ -1316,6 +1336,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "User Login"))
+        self.label_info.setText(_translate("MainWindow", "SuperFast Copy Trader System"))
         self.label.setText(_translate("MainWindow", "Don\'t have an account?"))
         self.pushButton_createAccount.setText(_translate("MainWindow", "Create Account"))
         self.label_4.setText(_translate("MainWindow", "Password"))

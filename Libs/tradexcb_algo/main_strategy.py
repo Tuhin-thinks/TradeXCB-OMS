@@ -206,7 +206,7 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
         if datetime.now() < nine_sixteen:
             continue
 
-        final_df = final_df[['tradingsymbol', 'exchange', 'quantity', 'timeframe', 'multiplier', 'entry_price',
+        final_df = final_df[['tradingsymbol', 'exchange', 'quantity', 'multiplier', 'entry_price',
                              'entry_time', 'exit_price', 'exit_time', 'target_price', 'sl_price', 'Row_Type',
                              'profit', 'ltp']]
         final_df['Trend'] = np.where(final_df['multiplier'] == 1, 'BUY', 'SELL')
@@ -325,143 +325,20 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                 this_instrument['transaction_type'] = this_instrument['transaction_type'].upper()
                 ltp = main_broker.latest_ltp[this_instrument['instrument_token']]['ltp']
 
-                if (int((curr_date - nine_fifteen).seconds / 60) % this_instrument['timeframe'] > 0) or (
-                        int((curr_date - nine_fifteen).seconds / 60) % this_instrument['timeframe'] == 0 and
-                        curr_date.second > 30) and this_instrument['run_done'] == 1:
+                if this_instrument['run_done'] == 1:
                     this_instrument['run_done'] = 0
 
-                if int((curr_date - nine_fifteen).seconds / 60) % this_instrument[
-                    'timeframe'] == 0 and curr_date.second <= 30 and (this_instrument['run_done'] == 0 and
-                                                                      this_instrument['status'] == 0):
+                if this_instrument['run_done'] == 0 and this_instrument['status'] == 0:
                     this_instrument['run_done'] = 1
                     logger.info(f"Running the {process_name} for {this_instrument['tradingsymbol']}")
-                    df = main_broker.get_data(this_instrument['instrument_token'],
-                                              str(int(this_instrument['timeframe'])), 'minute', from_dt, to_dt)[0]
-
-                    df = df[df.index < datetime.now().replace(microsecond=0, second=0)]
-                    time_df_col = df.index
-                    df = HA(df, ohlc=['open', 'high', 'low', 'close'])
-                    # print(df.tail(5))  # TODO: Remove this
-                    df.index = time_df_col
-                    df = calculations.get_vwap(df)
-                    df['SUPERTREND'] = ta_lib_ext.SuperTrend(df, this_instrument['ATR TS Period'],
-                                                             this_instrument['ATR TS Multiplier'],
-                                                             ohlc=['HA_open', 'HA_high', 'HA_low', 'HA_close'])
-                    this_instrument['vwap_last'] = df['vwap'].tail(2).head(1).values[0]
-                    vwap = df['vwap'].tail(1).values[0]
-
-                    atr_trend_bullish = 0
-                    atr_trend_bearish = 0
-
-                    if this_instrument['ATRTS'] == 'YES':
-                        if this_instrument['atrts_signal'] == 'new':
-                            atr_trend_bearish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'down') & (
-                                    df['SUPERTREND'].tail(2).head(1).values[0] == 'up')) else 0
-                            atr_trend_bullish = 1 if ((df['SUPERTREND'].tail(1).head(1).values[0] == 'up') & (
-                                    df['SUPERTREND'].tail(2).head(1).values[0] == 'down')) else 0
-                        if this_instrument['atrts_signal'] == 'existing':
-                            atr_trend_bearish = 1 if (df['SUPERTREND'].tail(1).head(1).values[0] == 'down') else 0
-                            atr_trend_bullish = 1 if (df['SUPERTREND'].tail(1).head(1).values[0] == 'up') else 0
-
-                    else:
-                        atr_trend_bullish = 1
-                        atr_trend_bearish = 1
-
-                    logger.info(f" Bearish trend : {atr_trend_bearish} Bullish trend : {atr_trend_bullish}")
-
-                    vwap_trend_bullish = 0
-                    vwap_trend_bearish = 0
-
-                    logger.info(f"Previous Vwap : {this_instrument['vwap_last']} Now Vwap : {vwap}")
-                    if this_instrument['vwap'] == 'YES' and this_instrument['vwap_last'] != 0:
-
-                        if this_instrument['vwap_signal'] == 'new':
-                            vwap_trend_bullish = 1 if (df['HA_close'].tail(1).head(1).values[0] > vwap) and (
-                                    df['HA_close'].tail(2).head(1).values[0] < this_instrument['vwap_last']) else 0
-                            vwap_trend_bearish = 1 if (df['HA_close'].tail(1).head(1).values[0] < vwap) and (
-                                    df['HA_close'].tail(2).head(1).values[0] > this_instrument['vwap_last']) else 0
-
-                        if this_instrument['vwap_signal'] == 'existing':
-                            vwap_trend_bullish = 1 if (df['HA_close'].tail(1).head(1).values[0] > vwap) else 0
-                            vwap_trend_bearish = 1 if (df['HA_close'].tail(1).head(1).values[0] < vwap) else 0
-                    else:
-                        vwap_trend_bullish = 1
-                        vwap_trend_bearish = 1
-
-                    this_instrument['vwap_last'] = vwap
-
-                    ma_trend_bullish = 0
-                    ma_trend_bearish = 0
-                    if this_instrument['moving_average'] == 'YES':
-                        df['moving_average'] = talib.MA(df['HA_close'],
-                                                        timeperiod=int(this_instrument['moving_average_period']))
-                        row_name = 'moving_average'
-                        if this_instrument['moving_average_signal'] == 'new':
-                            ma_trend_bullish = 1 if (df[row_name].tail(1).values[0] < df['HA_close'].tail(1).values[
-                                0]) and (df[row_name].tail(2).head(1).values[0] >=
-                                         df['HA_close'].tail(2).head(1).values[0]) else 0
-                            ma_trend_bearish = 1 if (df[row_name].tail(1).values[0] >= df['HA_close'].tail(1).values[
-                                0]) and (df[row_name].tail(2).head(1).values[0] < df['HA_close'].tail(2).head(1).values[
-                                0]) else 0
-                        if this_instrument['moving_average_signal'] == 'existing':
-                            ma_trend_bullish = 1 if (df[row_name].tail(1).values[0] < df['HA_close'].tail(1).values[
-                                0]) else 0
-                            ma_trend_bearish = 1 if (df[row_name].tail(1).values[0] >= df['HA_close'].tail(1).values[
-                                0]) else 0
-
-                    else:
-                        ma_trend_bullish = 1
-                        ma_trend_bearish = 1
-
-                    if this_instrument['use_priceba'] == 'YES':
-                        price_above_trend_bullish = 1 if ltp > this_instrument['buy_above'] else 0
-                        price_above_trend_bearish = 0
-                    else:
-                        price_above_trend_bearish = 1
-                        price_above_trend_bullish = 1
-
-                    if this_instrument['use_pricesb'] == 'YES':
-                        price_trend_bearish = 1 if ltp < this_instrument['sell_below'] else 0
-                        price_trend_bullish = 0
-                    else:
-                        price_trend_bearish = 1
-                        price_trend_bullish = 1
-                    # print all values for debugging, TODO: remove this later
-                    print(f"""
-{price_above_trend_bullish=}
-{price_trend_bullish=}
-{ma_trend_bullish=}
-{vwap_trend_bullish=}
-{atr_trend_bullish=}""")
-
-                    print(f"""
-{price_above_trend_bearish=}
-{price_trend_bearish=}
-{ma_trend_bearish=}
-{vwap_trend_bearish=}
-{atr_trend_bearish=}
-{this_instrument['multiplier']=} != -1
-{this_instrument['transaction_type']=} == 'SELL'""")
-                    logger.info(f"{price_above_trend_bullish=} and {price_trend_bullish=} and {ma_trend_bullish=} and "
-                                f"{vwap_trend_bullish=} and {atr_trend_bullish=} and "
-                                f"{this_instrument['multiplier']} != 1 and {this_instrument['transaction_type']} == 'BUY'")
-
-                    logger.info(f"{price_above_trend_bearish} and {price_trend_bearish} and {ma_trend_bearish} and"
-                                f" {price_trend_bearish} and {vwap_trend_bearish} and {atr_trend_bearish} and"
-                                f" {this_instrument['multiplier']} != -1 and"
-                                f" {this_instrument['transaction_type']} == 'SELL'")
-
-                    if price_above_trend_bullish and price_trend_bullish and ma_trend_bullish and \
-                            vwap_trend_bullish and atr_trend_bullish and \
-                            this_instrument['multiplier'] != 1 and this_instrument['transaction_type'].upper() == 'BUY':
+                    if this_instrument['multiplier'] != 1 and this_instrument['transaction_type'].upper() == 'BUY':
                         logger.info(f" In Buy Loop. for {this_instrument['tradingsymbol']}\n"
                                     f"Buy Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
                         this_instrument['multiplier'] = 1
 
-                        this_instrument['entry_price'] = calculations.fix_values(
-                            df['HA_close'].tail(1).values[0] * (1 - this_instrument['buy_ltp_percent'] / 100),
-                            this_instrument['tick_size'])
+                        this_instrument['entry_price'] = ltp  # todo: ha price is replaced with ltp (verify)
+
                         this_instrument['entry_time'] = datetime.now()
                         if this_instrument['target_type'].lower() == 'percentage':
                             this_instrument['target_price'] = calculations.fix_values(
@@ -514,18 +391,14 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
 
                         logger.info(f" Instrument_Details : {this_instrument}")
 
-                    elif (price_above_trend_bearish and price_trend_bearish and ma_trend_bearish and
-                          vwap_trend_bearish and atr_trend_bearish and
-                          this_instrument['multiplier'] != -1 and this_instrument[
-                              'transaction_type'].upper() == 'SELL'):
+                    elif this_instrument['multiplier'] != -1 and this_instrument['transaction_type'].upper() == 'SELL':
                         logger.info(f" In Sell Loop. for {this_instrument['tradingsymbol']}")
                         logger.info(f" Sell Signal has been Activated for {this_instrument['tradingsymbol']}")
                         this_instrument['status'] = 1
                         this_instrument['multiplier'] = -1
 
-                        this_instrument['entry_price'] = calculations.fix_values(
-                            df['HA_close'].tail(1).values[0] * (1 - this_instrument['sell_ltp_percent'] / 100),
-                            this_instrument['tick_size'])
+                        # todo: check for optimization
+                        this_instrument['entry_price'] = ltp
                         this_instrument['entry_time'] = datetime.now()
                         if this_instrument['order_type'] == 'MARKET':
                             this_instrument['entry_price'] = ltp
@@ -686,8 +559,9 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                     final_df = final_df.append(this_instrument, ignore_index=True)
 
                     # logger.info(f"{ltp} {this_instrument['multiplier']} {this_instrument['target_price']} {this_instrument['sl_price']}")
-                    if ltp * this_instrument['multiplier'] >= (this_instrument['target_price'] *
-                                                               this_instrument['multiplier']) and this_instrument['target_type'] != 'No Target Order':
+                    if ((ltp * this_instrument['multiplier']) >= (this_instrument['target_price'] *
+                                                                  this_instrument['multiplier']) and
+                            this_instrument['target_type'] != 'No Target Order'):
                         logger.info(f"Target has been Hit for {this_instrument['tradingsymbol']}")
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
