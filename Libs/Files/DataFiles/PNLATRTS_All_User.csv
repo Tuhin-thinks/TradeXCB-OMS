@@ -1,0 +1,4 @@
+,tradingsymbol,exchange,quantity,multiplier,entry_price,entry_time,exit_price,exit_time,target_price,sl_price,Row_Type,profit,ltp,Trend,user_id
+0,CRUDEOIL22AUGFUT,MCX,10,-1,7202.0,2022-08-21 11:56:38.946886,,,7152.0,7252.0,T,-0.0,7202.0,SELL,MH0069
+1,CRUDEOIL22AUGFUT,MCX,10,-1,7202.0,2022-08-21 11:56:38.946886,,,7152.0,7252.0,T,-0.0,7202.0,SELL,Y94889
+2,CRUDEOIL22AUGFUT,MCX,10,-1,7202.0,2022-08-21 11:56:38.946886,,,7152.0,7252.0,T,-0.0,7202.0,SELL,P713842
