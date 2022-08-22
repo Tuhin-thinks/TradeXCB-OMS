@@ -7,9 +7,9 @@ block_cipher = pyi_crypto.PyiBlockCipher(key='9EEE0694C7A3922E')
 
 
 additional_data_files = [
-    ("Libs/UI/Raw/*", "Libs/UI/Raw/"),
+    ("Libs/UI/Raw/*.*", "Libs/UI/Raw/"),
     ("Libs/Storage/DEFAULT_VALUES.json", "Libs/Storage/"),
-    ("Libs/UI/icons/*", "Libs/UI/icons"),
+    ("Libs/UI/icons/*.*", "Libs/UI/icons"),
     ("Libs/Files/DataFiles/*", "Libs/Files/DataFiles/"),
     ("config.ini", "."),
     ("app.ico", ".")
