@@ -6,9 +6,5 @@
 .backup
 .mypy_cache
 **.log
-**.txt
-**.png
-**.csv
 **locorum
 **Instruments.csv
-test**
