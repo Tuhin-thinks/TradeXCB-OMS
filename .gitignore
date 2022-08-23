@@ -8,3 +8,7 @@
 **.log
 **locorum
 **Instruments.csv
+
+# ignore pyinstaller generated files/folders
+build
+dist
