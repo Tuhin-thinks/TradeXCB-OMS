@@ -120,10 +120,13 @@ def reverse_txn_type(transaction_type: str) -> str:
 
 
 def get_adjusted_trigger_price(transaction_type: str, sl_price: float, tick_size: int) -> float:
+    """
+    This function returns the trigger price, from taking input sl_price and tick_size
+    """
     if transaction_type == 'BUY':
-        return sl_price - tick_size * 4
-    else:
         return sl_price + tick_size * 4
+    else:
+        return sl_price - tick_size * 4
 
 
 def get_vwap(df: pd.DataFrame):
