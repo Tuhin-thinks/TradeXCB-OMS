@@ -333,7 +333,14 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['status'] = 1
                         this_instrument['multiplier'] = 1
 
-                        this_instrument['entry_price'] = ltp  # todo: ha price is replaced with ltp (verify)
+                        this_instrument['entry_price'] = calculations.get_entry_price(this_instrument['order_type'],
+                                                                                      this_instrument[
+                                                                                          'transaction_type'],
+                                                                                      ltp,
+                                                                                      this_instrument[
+                                                                                          'buy_ltp_percent'],
+                                                                                      this_instrument[
+                                                                                          'tick_size'])  # todo: ha price is replaced with ltp (verify)
 
                         this_instrument['entry_time'] = datetime.now()
                         if this_instrument['target_type'].lower() == 'percentage':
@@ -394,10 +401,19 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                         this_instrument['multiplier'] = -1
 
                         # todo: check for optimization
-                        this_instrument['entry_price'] = ltp
+
                         this_instrument['entry_time'] = datetime.now()
                         if this_instrument['order_type'] == 'MARKET':
                             this_instrument['entry_price'] = ltp
+                        else:
+                            this_instrument['entry_price'] = calculations.get_entry_price(this_instrument['order_type'],
+                                                                                          this_instrument[
+                                                                                              'transaction_type'],
+                                                                                          ltp,
+                                                                                          this_instrument[
+                                                                                              'sell_ltp_percent'],
+                                                                                          this_instrument[
+                                                                                              'tick_size'])  # todo: ha price is replaced with ltp (verify)
 
                         if this_instrument['target_type'].lower() == 'percentage':
                             this_instrument['target_price'] = calculations.fix_values(
@@ -555,9 +571,9 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                     final_df = final_df.append(this_instrument, ignore_index=True)
 
                     # logger.info(f"{ltp} {this_instrument['multiplier']} {this_instrument['target_price']} {this_instrument['sl_price']}")
-                    if ((ltp * this_instrument['multiplier']) >= (this_instrument['target_price'] *
-                                                                  this_instrument['multiplier']) and
-                            this_instrument['target_type'] != 'No Target Order'):
+                    if (this_instrument['target_type'] != 'No Target Order' and
+                            (ltp * this_instrument['multiplier']) >= (this_instrument['target_price'] *
+                                                                      this_instrument['multiplier'])):
                         logger.info(f"Target has been Hit for {this_instrument['tradingsymbol']}")
                         this_instrument['exit_time'] = datetime.now()
                         this_instrument['exit_price'] = ltp
@@ -602,9 +618,8 @@ def main(manager_dict: dict, cancel_orders_queue: multiprocessing.Queue):
                                     elif order_status == 'COMPLETE':
                                         this_user['broker'].cancel_order(order_id)
                                 except:
-                                    logger.critical(
-                                        f"Error in Closing Order Placement for {this_user['Name']} Error {sys.exc_info()}",
-                                        exc_info=True)
+                                    logger.critical(f"Error in Closing Order Placement for {this_user['Name']} "
+                                                    f"Error {sys.exc_info()}", exc_info=True)
 
                         # final_df = final_df[final_df['Row_Type']!='T']
                         this_instrument['Row_Type'] = 'F'

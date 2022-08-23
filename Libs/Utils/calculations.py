@@ -148,3 +148,12 @@ def fix_values(value, tick_size):
 
 def do_assertion(name, variable):
     assert variable is not None, f"Variable {name} is None"
+
+
+def get_entry_price(order_type: str, transaction_type, ltp: float, txn_ltp_percent: int, tick_size: int) -> float:
+    if order_type == "LIMIT":
+        multiplier = -1 if transaction_type == "SELL" else 1
+        calculated_price = ltp * (1 - multiplier * txn_ltp_percent / 100)
+        return fix_values(calculated_price, tick_size)
+    else:
+        return ltp
