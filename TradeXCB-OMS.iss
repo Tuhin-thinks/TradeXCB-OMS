@@ -2,11 +2,12 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TradeXCB-OMS"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.10"
 #define MyAppPublisher "AlgoBeacon Technologies"
 #define MyAppURL "http://trendmyfriend.co.in"
 #define MyAppExeName "TradeXCB-OMS.exe"
-#define InputBase "C:\Users\tuhin\Desktop\Python_Codes\TradeXCB-OMS-Zerodha\dist"
+#define ExeHomeDir "C:\Users\tuhin\Documents\PythonCodes\Shiva\TradeXCB-OMS"
+#define InputBase "C:\Users\tuhin\Documents\PythonCodes\Shiva\TradeXCB-OMS\dist"
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
@@ -23,11 +24,11 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 ; LicenseFile=C:\Users\tuhin\Desktop\Python_Codes\TrendmyFriend - SIGNALS\dist\TrendmyFriend-OIS\License.txt
-InfoBeforeFile=C:\Users\tuhin\Desktop\Python_Codes\TradeXCB-OMS\Disclaimer.rtf
+InfoBeforeFile={#ExeHomeDir}\Disclaimer.rtf
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\tuhin\Documents\ISS_Compiled-TradeXCB-OMS
-OutputBaseFilename={#MyAppName}_v{#MyAppVersion} (Zerodha)
+OutputDir=C:\Users\tuhin\Documents\ISS_COMPILED\ISS_COMPILED-TradeXCB-OMS
+OutputBaseFilename={#MyAppName}_v{#MyAppVersion}
 SetupIconFile={#InputBase}\{#MyAppName}\app.ico
 UninstallDisplayIcon={#InputBase}\{#MyAppName}\app.ico
 Compression=lzma2/ultra64
